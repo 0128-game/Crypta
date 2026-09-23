@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cryptography Simulator</title>
+  <!-- CSSは後で分離して追加 -->
+  <!-- <link rel="stylesheet" href="css/common.css"> -->
+  <!-- <link rel="stylesheet" href="css/simulator.css"> -->
+</head>
+<body>
+<main id="simulator">
+
+  <header id="simulator-header">
+    <div id="stage-info">
+      <div id="unit-name">UNIT</div>
+      <h1 id="stage-title">ステージタイトル</h1>
+      <p id="stage-description">ステージの説明</p>
+    </div>
+    <div id="simulation-status">
+      <span id="status-label">準備中</span>
+      <button id="start-button" type="button">通信開始</button>
+    </div>
+  </header>
+
+  <section id="goal-panel">
+    <h2>今回の目標</h2>
+    <div id="final-goal"><h3>最終目標</h3><p id="final-goal-text">---</p></div>
+    <div id="sub-goals">
+      <article id="goal-a"><h3>Goal A</h3><p id="goal-a-text">---</p><span id="goal-a-status">未達成</span></article>
+      <article id="goal-b"><h3>Goal B</h3><p id="goal-b-text">---</p><span id="goal-b-status">未達成</span></article>
+    </div>
+  </section>
+
+  <section id="simulation-area">
+    <aside id="eve-panel">
+      <div class="attacker-header"><span class="attacker-role">EVE</span><h2>盗聴者</h2></div>
+      <div id="eve-environment">
+        <h3>攻撃環境</h3>
+        <dl>
+          <div><dt>計算能力</dt><dd id="eve-computational-power">---</dd></div>
+          <div><dt>通信データベース</dt><dd id="eve-database-size">---</dd></div>
+          <div><dt>観測期間</dt><dd id="eve-observation-period">---</dd></div>
+          <div><dt>既知情報</dt><dd id="eve-known-information">---</dd></div>
+          <div><dt>観測範囲</dt><dd id="eve-observation-scope">---</dd></div>
+        </dl>
+      </div>
+      <div id="eve-log" class="attacker-log"><h3>観測ログ</h3><ol id="eve-log-list"></ol></div>
+    </aside>
+
+    <div id="communication-area">
+      <div id="alice" class="participant">
+        <div class="participant-icon">A</div><h2>Alice</h2><p>送信者</p>
+        <div id="alice-message-area"><h3>送信メッセージ</h3><div id="alice-message">---</div></div>
+        <div id="alice-processing-area"><h3>使用中の処理</h3><div id="alice-tools"></div></div>
+      </div>
+
+      <div id="communication-route">
+        <div id="packet-lane"><div id="packet-track"></div></div>
+        <div id="route-interception-point"><span>通信経路</span></div>
+        <div id="communication-state"><span id="communication-state-label">待機中</span></div>
+      </div>
+
+      <aside id="mallory-panel">
+        <div class="attacker-header"><span class="attacker-role">MALLORY</span><h2>攻撃者</h2></div>
+        <div id="mallory-environment">
+          <h3>攻撃環境</h3>
+          <dl>
+            <div><dt>介入範囲</dt><dd id="mallory-intervention-scope">---</dd></div>
+            <div><dt>攻撃可能回数</dt><dd id="mallory-attack-count">---</dd></div>
+            <div><dt>なりすまし範囲</dt><dd id="mallory-impersonation-scope">---</dd></div>
+            <div><dt>既知情報</dt><dd id="mallory-known-information">---</dd></div>
+          </dl>
+        </div>
+        <div id="mallory-log" class="attacker-log"><h3>攻撃ログ</h3><ol id="mallory-log-list"></ol></div>
+      </aside>
+
+      <div id="bob" class="participant">
+        <div class="participant-icon">B</div><h2>Bob</h2><p>受信者</p>
+        <div id="bob-message-area"><h3>受信メッセージ</h3><div id="bob-message">---</div></div>
+        <div id="bob-processing-area"><h3>使用中の処理</h3><div id="bob-tools"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tool-panel">
+    <header><h2>使用できる道具</h2><p id="tool-description">現在のステージで使用可能な道具</p></header>
+    <div id="tool-palette">
+      <button class="tool" type="button" data-tool="plaintext"><span class="tool-name">平文</span><span class="tool-description">そのままのメッセージ</span></button>
+      <button class="tool" type="button" data-tool="caesar"><span class="tool-name">シーザー暗号</span><span class="tool-description">文字を一定数ずらす</span></button>
+      <button class="tool" type="button" data-tool="substitution"><span class="tool-name">換字式暗号</span><span class="tool-description">文字を別の文字に置き換える</span></button>
+      <button class="tool" type="button" data-tool="enigma"><span class="tool-name">Enigma</span><span class="tool-description">ローターによる暗号化</span></button>
+      <button class="tool" type="button" data-tool="aes"><span class="tool-name">AES</span><span class="tool-description">共通鍵暗号</span></button>
+      <button class="tool" type="button" data-tool="rsa"><span class="tool-name">RSA</span><span class="tool-description">公開鍵暗号</span></button>
+      <button class="tool" type="button" data-tool="hash"><span class="tool-name">ハッシュ</span><span class="tool-description">データの指紋</span></button>
+      <button class="tool" type="button" data-tool="mac"><span class="tool-name">MAC</span><span class="tool-description">共有鍵による認証</span></button>
+      <button class="tool" type="button" data-tool="signature"><span class="tool-name">電子署名</span><span class="tool-description">秘密鍵による署名</span></button>
+      <button class="tool" type="button" data-tool="certificate"><span class="tool-name">証明書</span><span class="tool-description">公開鍵の正当性を確認</span></button>
+    </div>
+  </section>
+
+  <section id="construction-panel">
+    <header><h2>通信を構築する</h2><p>使用する道具を選び、AliceからBobまでの通信を構築してください。</p></header>
+    <div id="construction-area">
+      <div id="alice-construction"><h3>Alice側</h3><div id="alice-construction-tools"></div></div>
+      <div id="construction-flow"><div class="flow-node">Alice</div><div class="flow-arrow">→</div><div id="construction-steps"></div><div class="flow-arrow">→</div><div class="flow-node">Bob</div></div>
+      <div id="bob-construction"><h3>Bob側</h3><div id="bob-construction-tools"></div></div>
+    </div>
+    <div id="construction-actions">
+      <button id="reset-construction-button" type="button">構築をリセット</button>
+      <button id="test-construction-button" type="button">この構成をテスト</button>
+    </div>
+  </section>
+
+  <section id="simulation-log-panel"><header><h2>シミュレーションログ</h2></header><div id="simulation-log"><ol id="simulation-log-list"></ol></div></section>
+
+  <section id="result-panel" hidden>
+    <div id="breakthrough-result">
+      <h2>突破結果</h2>
+      <div id="result-status"><span id="result-status-label">---</span></div>
+      <div id="result-explanation"><h3>何が起きたか</h3><p id="result-explanation-text">---</p></div>
+      <div id="exploited-weakness"><h3>利用された弱点</h3><ul id="exploited-weakness-list"></ul></div>
+    </div>
+    <div id="unresolved-issues">
+      <h2>今回分かったこと</h2>
+      <div id="discovered-facts"></div>
+      <h3>次に解決すべき課題</h3><ul id="unresolved-issues-list"></ul>
+    </div>
+  </section>
+
+  <section id="evaluation-panel" hidden>
+    <h2>評価</h2>
+    <div id="evaluation-grade"><span id="evaluation-grade-label">---</span></div>
+    <div id="evaluation-requirements"><h3>要件の達成状況</h3><ul id="evaluation-requirements-list"></ul></div>
+    <div id="evaluation-summary"><p id="evaluation-summary-text">---</p></div>
+    <button id="retry-button" type="button">もう一度挑戦する</button>
+    <button id="next-stage-button" type="button">次のステージへ</button>
+  </section>
+
+</main>
+
+<!-- JavaScriptは後で分離して追加 -->
+<!-- <script src="js/common.js"></script> -->
+<!-- <script src="js/simulator.js"></script> -->
+</body>
+</html>
