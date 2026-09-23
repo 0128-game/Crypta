@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Crypta - 暗号通信を構築し、攻撃から守るシミュレーション">
+  <title>Crypta</title>
+  <link rel="stylesheet" href="css/common.css">
+</head>
+<body>
+  <main id="crypta-home">
+    <header id="home-header">
+      <p>CRYPTOGRAPHIC COMMUNICATION SIMULATION</p>
+      <h1>Crypta</h1>
+      <p>暗号通信を構築し、攻撃から守る。</p>
+    </header>
+
+    <section id="stage-selection" aria-labelledby="stage-selection-title">
+      <header>
+        <h2 id="stage-selection-title">Stage Select</h2>
+        <p>各ステージで通信を構築し、EveやMalloryの攻撃から守り抜いてください。</p>
+      </header>
+
+      <section aria-labelledby="unit1-title">
+        <h3 id="unit1-title">Unit 1 — Eve</h3>
+        <p>受動的攻撃者から通信内容を守る。</p>
+        <nav aria-label="Unit 1 stages">
+          <ol>
+            <li><a href="simulation.html?stage=stage01">Stage 1 — シーザー暗号</a></li>
+            <li><a href="simulation.html?stage=stage02">Stage 2 — 単一換字式暗号</a></li>
+            <li><a href="simulation.html?stage=stage03">Stage 3 — エニグマ暗号</a></li>
+            <li><a href="simulation.html?stage=stage04">Stage 4 — AES暗号</a></li>
+            <li><a href="simulation.html?stage=stage05">Stage 5 — RSA + AES</a></li>
+          </ol>
+        </nav>
+      </section>
+
+      <section aria-labelledby="unit2-title">
+        <h3 id="unit2-title">Unit 2 — Mallory</h3>
+        <p>改ざんや成りすましから通信を守る。</p>
+        <nav aria-label="Unit 2 stages">
+          <ol start="6">
+            <li><a href="simulation.html?stage=stage06">Stage 6 — 暗号化のみ</a></li>
+            <li><a href="simulation.html?stage=stage07">Stage 7 — ハッシュ関数</a></li>
+            <li><a href="simulation.html?stage=stage08">Stage 8 — MAC</a></li>
+            <li><a href="simulation.html?stage=stage09">Stage 9 — デジタル署名</a></li>
+            <li><a href="simulation.html?stage=stage10">Stage 10 — PKI</a></li>
+          </ol>
+        </nav>
+      </section>
+
+      <section aria-labelledby="final-unit-title">
+        <h3 id="final-unit-title">Final Unit — Eve + Mallory</h3>
+        <p>盗聴・改ざん・成りすましを含む通信環境を守る。</p>
+        <nav aria-label="Final Unit stages">
+          <ol start="11">
+            <li><a href="simulation.html?stage=stage11">Stage 11 — TLS / HTTPS</a></li>
+            <li><a href="simulation.html?stage=stage12">Stage 12 — VPN / IPsec</a></li>
+          </ol>
+        </nav>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
