@@ -3,63 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Crypta - 暗号通信を構築し、攻撃から守るシミュレーション">
+  <meta name="description" content="Crypta - 暗号通信シミュレーション">
   <title>Crypta</title>
   <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-  <main id="crypta-home">
-    <header id="home-header">
-      <p>CRYPTOGRAPHIC COMMUNICATION SIMULATION</p>
-      <h1>Crypta</h1>
-      <p>暗号通信を構築し、攻撃から守る。</p>
+  <main id="app" class="index-page">
+    <header class="site-header">
+      <div class="brand">
+        <p class="brand-label">CRYPTOGRAPHIC COMMUNICATION SIMULATION</p>
+        <h1>Crypta</h1>
+      </div>
+      <p class="brand-description">暗号通信を、組み立てて、試す。</p>
     </header>
 
-    <section id="stage-selection" aria-labelledby="stage-selection-title">
-      <header>
-        <h2 id="stage-selection-title">Stage Select</h2>
-        <p>各ステージで通信を構築し、EveやMalloryの攻撃から守り抜いてください。</p>
-      </header>
-
-      <section aria-labelledby="unit1-title">
-        <h3 id="unit1-title">Unit 1 — Eve</h3>
-        <p>受動的攻撃者から通信内容を守る。</p>
-        <nav aria-label="Unit 1 stages">
-          <ol>
-            <li><a href="simulation.html?stage=stage01">Stage 1 — シーザー暗号</a></li>
-            <li><a href="simulation.html?stage=stage02">Stage 2 — 単一換字式暗号</a></li>
-            <li><a href="simulation.html?stage=stage03">Stage 3 — エニグマ暗号</a></li>
-            <li><a href="simulation.html?stage=stage04">Stage 4 — AES暗号</a></li>
-            <li><a href="simulation.html?stage=stage05">Stage 5 — RSA + AES</a></li>
-          </ol>
-        </nav>
-      </section>
-
-      <section aria-labelledby="unit2-title">
-        <h3 id="unit2-title">Unit 2 — Mallory</h3>
-        <p>改ざんや成りすましから通信を守る。</p>
-        <nav aria-label="Unit 2 stages">
-          <ol start="6">
-            <li><a href="simulation.html?stage=stage06">Stage 6 — 暗号化のみ</a></li>
-            <li><a href="simulation.html?stage=stage07">Stage 7 — ハッシュ関数</a></li>
-            <li><a href="simulation.html?stage=stage08">Stage 8 — MAC</a></li>
-            <li><a href="simulation.html?stage=stage09">Stage 9 — デジタル署名</a></li>
-            <li><a href="simulation.html?stage=stage10">Stage 10 — PKI</a></li>
-          </ol>
-        </nav>
-      </section>
-
-      <section aria-labelledby="final-unit-title">
-        <h3 id="final-unit-title">Final Unit — Eve + Mallory</h3>
-        <p>盗聴・改ざん・成りすましを含む通信環境を守る。</p>
-        <nav aria-label="Final Unit stages">
-          <ol start="11">
-            <li><a href="simulation.html?stage=stage11">Stage 11 — TLS / HTTPS</a></li>
-            <li><a href="simulation.html?stage=stage12">Stage 12 — VPN / IPsec</a></li>
-          </ol>
-        </nav>
-      </section>
+    <section class="start-panel" aria-labelledby="start-title">
+      <div>
+        <p class="section-label">SIMULATION</p>
+        <h2 id="start-title">通信を構築する</h2>
+        <p>まずはシミュレーション画面へ進み、AliceからBobへの通信を構築します。</p>
+      </div>
+      <a id="start-simulation" class="primary-button" href="simulation.html?stage=stage01">
+        シミュレーションを開始
+      </a>
     </section>
+
+    <section class="stage-overview" aria-labelledby="stage-overview-title">
+      <div class="section-heading">
+        <p class="section-label">STAGE</p>
+        <h2 id="stage-overview-title">ステージ</h2>
+      </div>
+
+      <div class="stage-list">
+        <a class="stage-link" href="simulation.html?stage=stage01">Stage 01</a>
+        <a class="stage-link" href="simulation.html?stage=stage02">Stage 02</a>
+        <a class="stage-link" href="simulation.html?stage=stage03">Stage 03</a>
+        <a class="stage-link" href="simulation.html?stage=stage04">Stage 04</a>
+        <a class="stage-link" href="simulation.html?stage=stage05">Stage 05</a>
+        <a class="stage-link" href="simulation.html?stage=stage06">Stage 06</a>
+        <a class="stage-link" href="simulation.html?stage=stage07">Stage 07</a>
+        <a class="stage-link" href="simulation.html?stage=stage08">Stage 08</a>
+        <a class="stage-link" href="simulation.html?stage=stage09">Stage 09</a>
+        <a class="stage-link" href="simulation.html?stage=stage10">Stage 10</a>
+        <a class="stage-link" href="simulation.html?stage=stage11">Stage 11</a>
+        <a class="stage-link" href="simulation.html?stage=stage12">Stage 12</a>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <span>CRYPTA</span>
+      <span>VERSION 0.1</span>
+    </footer>
   </main>
+
+  <script src="js/common.js" defer></script>
+  <script src="js/index.js" defer></script>
 </body>
 </html>
