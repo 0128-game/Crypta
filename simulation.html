@@ -3,249 +3,618 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Crypta - Simulation</title>
 
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/simulation.css">
+
   <script src="js/simulation.js" defer></script>
 </head>
 
 <body>
-  <main id="simulator" class="page">
+  <main class="page simulation-page">
+
+    <!-- ========================================
+         Simulation Header
+         ======================================== -->
+
     <header class="simulation-header">
-      <div>
-        <p id="unit-name" class="eyebrow">UNIT</p>
+      <div class="simulation-heading">
+        <p id="unit-name" class="unit-name">UNIT</p>
+
         <h1 id="stage-title">シミュレーション</h1>
-        <p id="stage-description">ステージデータを読み込んでいます。</p>
+
+        <p id="stage-description" class="stage-description">
+          ステージデータを読み込んでいます。
+        </p>
       </div>
 
-      <div id="simulation-status" class="status-badge">準備中</div>
+      <div class="simulation-status-area">
+        <span class="status-label">STATUS</span>
+        <span
+          id="simulation-status"
+          class="simulation-status"
+        >
+          読み込み中
+        </span>
+      </div>
     </header>
 
-    <section class="goal-panel card">
+
+    <!-- ========================================
+         Goal
+         ======================================== -->
+
+    <section class="card goal-panel" aria-labelledby="goal-heading">
+
       <div class="section-heading">
-        <h2>達成目標</h2>
-        <p>まずはAの達成を目指してください。</p>
+        <h2 id="goal-heading">目標</h2>
       </div>
 
-      <div class="goal-grid">
-        <article class="goal goal-main">
-          <span class="goal-label">FINAL GOAL</span>
-          <h3 id="final-goal">---</h3>
-        </article>
+      <div class="goal-main">
+        <span class="goal-label">FINAL GOAL</span>
 
-        <article class="goal">
+        <p id="final-goal">
+          ---
+        </p>
+      </div>
+
+      <div class="goal-sub">
+
+        <article class="goal-item">
           <span class="goal-label">GOAL A</span>
-          <h3 id="goal-a">---</h3>
-          <span id="goal-a-status" class="goal-status">未達成</span>
+
+          <p id="goal-a">
+            ---
+          </p>
+
+          <span
+            id="goal-a-status"
+            class="goal-status"
+          >
+            未達成
+          </span>
         </article>
 
-        <article class="goal">
+        <article class="goal-item">
           <span class="goal-label">GOAL B</span>
-          <h3 id="goal-b">---</h3>
-          <span id="goal-b-status" class="goal-status">未達成</span>
+
+          <p id="goal-b">
+            ---
+          </p>
+
+          <span
+            id="goal-b-status"
+            class="goal-status"
+          >
+            未達成
+          </span>
         </article>
+
       </div>
     </section>
 
-    <section class="environment-grid">
-      <article class="attacker-panel card" id="eve-panel">
-        <div class="panel-heading">
-          <div>
-            <span class="attacker-type">PASSIVE ATTACKER</span>
-            <h2>Eve</h2>
-          </div>
-          <span class="attacker-state">待機中</span>
-        </div>
 
-        <p class="panel-description">
-          通信を観測し、利用できる情報から秘密を読み取ろうとします。
-        </p>
+    <!-- ========================================
+         Communication Simulation
+         ======================================== -->
 
-        <dl class="environment-list" id="eve-environment">
-          <div>
-            <dt>計算能力</dt>
-            <dd data-environment="computational_capability">---</dd>
-          </div>
-          <div>
-            <dt>通信データベース</dt>
-            <dd data-environment="communication_database">---</dd>
-          </div>
-          <div>
-            <dt>観測期間</dt>
-            <dd data-environment="observation_period">---</dd>
-          </div>
-          <div>
-            <dt>既知情報</dt>
-            <dd data-environment="known_information">---</dd>
-          </div>
-          <div>
-            <dt>観測範囲</dt>
-            <dd data-environment="observation_scope">---</dd>
-          </div>
-        </dl>
-      </article>
+    <section
+      class="communication-section"
+      aria-labelledby="communication-heading"
+    >
 
-      <article class="attacker-panel card" id="mallory-panel">
-        <div class="panel-heading">
-          <div>
-            <span class="attacker-type">ACTIVE ATTACKER</span>
-            <h2>Mallory</h2>
-          </div>
-          <span class="attacker-state">待機中</span>
-        </div>
-
-        <p class="panel-description">
-          通信へ介入し、内容の変更やなりすましを試みます。
-        </p>
-
-        <dl class="environment-list" id="mallory-environment">
-          <div>
-            <dt>介入範囲</dt>
-            <dd data-environment="intervention_scope">---</dd>
-          </div>
-          <div>
-            <dt>攻撃機会</dt>
-            <dd data-environment="attack_opportunity">---</dd>
-          </div>
-          <div>
-            <dt>なりすまし範囲</dt>
-            <dd data-environment="impersonation_scope">---</dd>
-          </div>
-          <div>
-            <dt>既知情報</dt>
-            <dd data-environment="known_information">---</dd>
-          </div>
-        </dl>
-      </article>
-    </section>
-
-    <section class="communication card">
       <div class="section-heading">
-        <h2>通信経路</h2>
-        <p>AliceからBobへ通信を送ります。</p>
+        <h2 id="communication-heading">
+          通信
+        </h2>
+
+        <p id="communication-mode">
+          通信を構築してください。
+        </p>
       </div>
 
-      <div class="communication-stage">
-        <article class="endpoint endpoint-alice">
-          <span class="endpoint-role">SENDER</span>
-          <h3>Alice</h3>
-          <p>送信側</p>
-        </article>
 
-        <div class="route">
-          <div class="route-line"></div>
-          <div id="packet" class="packet">DATA</div>
+      <!-- ======================================
+           Communication View
+           ====================================== -->
+
+      <div
+        id="communication-view"
+        class="communication-view"
+      >
+
+        <!-- Alice -->
+
+        <div
+          id="alice"
+          class="endpoint endpoint-alice"
+        >
+          <div class="endpoint-icon">
+            A
+          </div>
+
+          <div class="endpoint-info">
+            <span class="endpoint-role">
+              SENDER
+            </span>
+
+            <h3>Alice</h3>
+          </div>
         </div>
 
-        <article class="endpoint endpoint-bob">
-          <span class="endpoint-role">RECEIVER</span>
-          <h3>Bob</h3>
-          <p>受信側</p>
-        </article>
+
+        <!-- Communication Route -->
+
+        <div
+          id="communication-route"
+          class="communication-route"
+        >
+
+          <div
+            id="route-line"
+            class="route-line"
+          ></div>
+
+          <div
+            id="route-nodes"
+            class="route-nodes"
+            aria-label="通信経路"
+          >
+            <!--
+              JSによって通信処理ノードを生成する。
+              例:
+              暗号化
+              鍵交換
+              MAC
+              電子署名
+              復号
+            -->
+          </div>
+
+          <div
+            id="packet-layer"
+            class="packet-layer"
+            aria-live="polite"
+          >
+            <!-- JSによって通信データを生成する -->
+          </div>
+
+        </div>
+
+
+        <!-- Bob -->
+
+        <div
+          id="bob"
+          class="endpoint endpoint-bob"
+        >
+          <div class="endpoint-icon">
+            B
+          </div>
+
+          <div class="endpoint-info">
+            <span class="endpoint-role">
+              RECEIVER
+            </span>
+
+            <h3>Bob</h3>
+          </div>
+        </div>
+
+
+        <!-- ====================================
+             Attacker Layer
+             ==================================== -->
+
+        <div
+          id="attacker-layer"
+          class="attacker-layer"
+        >
+
+          <!-- Eve -->
+          <!--
+            Eveが存在するステージでのみ
+            JSによって表示する。
+          -->
+
+          <button
+            id="eve"
+            class="attacker attacker-eve hidden"
+            type="button"
+            aria-label="Eveの情報を表示"
+          >
+            <span class="attacker-icon">
+              E
+            </span>
+
+            <span class="attacker-name">
+              Eve
+            </span>
+
+            <span class="attacker-role">
+              EAVESDROPPER
+            </span>
+          </button>
+
+
+          <!-- Mallory -->
+          <!--
+            Malloryが存在するステージでのみ
+            JSによって表示する。
+          -->
+
+          <button
+            id="mallory"
+            class="attacker attacker-mallory hidden"
+            type="button"
+            aria-label="Malloryの情報を表示"
+          >
+            <span class="attacker-icon">
+              M
+            </span>
+
+            <span class="attacker-name">
+              Mallory
+            </span>
+
+            <span class="attacker-role">
+              ATTACKER
+            </span>
+          </button>
+
+        </div>
+
+
+        <!-- ====================================
+             Attacker Information
+             ==================================== -->
+
+        <aside
+          id="attacker-info"
+          class="attacker-info hidden"
+          aria-live="polite"
+        >
+
+          <div class="attacker-info-header">
+
+            <div>
+              <span
+                id="attacker-info-type"
+                class="attacker-info-type"
+              >
+                ---
+              </span>
+
+              <h3 id="attacker-info-name">
+                ---
+              </h3>
+            </div>
+
+            <button
+              id="attacker-info-close"
+              class="icon-button"
+              type="button"
+              aria-label="情報を閉じる"
+            >
+              ×
+            </button>
+
+          </div>
+
+          <p
+            id="attacker-info-description"
+            class="attacker-info-description"
+          >
+            ---
+          </p>
+
+          <dl
+            id="attacker-info-environment"
+            class="attacker-environment"
+          >
+            <!-- JSによって生成 -->
+          </dl>
+
+        </aside>
+
       </div>
     </section>
 
-    <section class="construction-grid">
-      <article class="construction-panel card">
-        <div class="section-heading">
-          <h2>通信の構築</h2>
-          <p>利用可能なツールを組み合わせて通信を構成します。</p>
-        </div>
 
-        <div class="tool-palette">
+    <!-- ========================================
+         Construction
+         ======================================== -->
+
+    <section
+      id="construction-section"
+      class="card construction-panel"
+      aria-labelledby="construction-heading"
+    >
+
+      <div class="section-heading">
+        <h2 id="construction-heading">
+          通信を構築
+        </h2>
+
+        <p>
+          利用可能なツールを通信経路に組み込んでください。
+        </p>
+      </div>
+
+
+      <!-- Tool Palette -->
+
+      <div class="tool-palette">
+
+        <div class="subsection-heading">
           <h3>利用可能なツール</h3>
-          <div id="tool-list" class="tool-list"></div>
         </div>
 
-        <div class="construction-area">
-          <div class="side-construction">
-            <h3>Alice側</h3>
-            <div id="alice-tools" class="drop-area" data-side="alice">
-              <span class="drop-placeholder">ここにツールを配置</span>
-            </div>
-          </div>
-
-          <div class="flow-construction">
-            <h3>通信フロー</h3>
-            <div id="flow-tools" class="drop-area" data-side="flow">
-              <span class="drop-placeholder">ここにツールを配置</span>
-            </div>
-          </div>
-
-          <div class="side-construction">
-            <h3>Bob側</h3>
-            <div id="bob-tools" class="drop-area" data-side="bob">
-              <span class="drop-placeholder">ここにツールを配置</span>
-            </div>
-          </div>
+        <div
+          id="tool-list"
+          class="tool-list"
+        >
+          <!-- JSによって生成 -->
         </div>
 
-        <div class="construction-actions">
-          <button id="reset-button" class="button button-secondary" type="button">
-            構成をリセット
-          </button>
-          <button id="test-button" class="button" type="button">
-            通信をテスト
-          </button>
+      </div>
+
+
+      <!-- Construction Route -->
+
+      <div class="construction-area">
+
+        <!-- Alice Side -->
+
+        <div
+          class="construction-side construction-alice"
+        >
+
+          <div class="construction-side-header">
+            <span class="construction-side-label">
+              ALICE
+            </span>
+
+            <span>
+              送信側
+            </span>
+          </div>
+
+          <div
+            id="alice-tools"
+            class="construction-tools"
+          >
+            <span class="drop-placeholder">
+              ここにツールを配置
+            </span>
+          </div>
+
         </div>
-      </article>
+
+
+        <!-- Flow -->
+
+        <div
+          class="construction-side construction-flow"
+        >
+
+          <div class="construction-side-header">
+            <span class="construction-side-label">
+              COMMUNICATION
+            </span>
+
+            <span>
+              通信経路
+            </span>
+          </div>
+
+          <div
+            id="flow-tools"
+            class="construction-tools"
+          >
+            <span class="drop-placeholder">
+              ここにツールを配置
+            </span>
+          </div>
+
+        </div>
+
+
+        <!-- Bob Side -->
+
+        <div
+          class="construction-side construction-bob"
+        >
+
+          <div class="construction-side-header">
+            <span class="construction-side-label">
+              BOB
+            </span>
+
+            <span>
+              受信側
+            </span>
+          </div>
+
+          <div
+            id="bob-tools"
+            class="construction-tools"
+          >
+            <span class="drop-placeholder">
+              ここにツールを配置
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Construction Controls -->
+
+      <div class="construction-controls">
+
+        <button
+          id="reset-button"
+          class="button button-secondary"
+          type="button"
+        >
+          構成をリセット
+        </button>
+
+        <button
+          id="start-button"
+          class="button"
+          type="button"
+        >
+          シミュレーション開始
+        </button>
+
+      </div>
+
     </section>
 
-    <section class="log-panel card">
+
+    <!-- ========================================
+         Simulation Result
+         ======================================== -->
+
+    <section
+      id="result-panel"
+      class="card result-panel hidden"
+      aria-labelledby="result-heading"
+    >
+
       <div class="section-heading">
-        <h2>シミュレーションログ</h2>
-      </div>
-      <div id="simulation-log" class="log" aria-live="polite"></div>
-    </section>
-
-    <section id="result-panel" class="result-panel card hidden">
-      <div class="section-heading">
-        <span class="result-eyebrow">SIMULATION RESULT</span>
-        <h2 id="result-title">突破された！</h2>
+        <h2 id="result-heading">
+          シミュレーション結果
+        </h2>
       </div>
 
-      <div class="result-grid">
-        <article>
-          <h3>何が起きたか</h3>
-          <p id="result-explanation">---</p>
-        </article>
+      <div class="result-main">
 
-        <article>
-          <h3>利用された弱点</h3>
-          <p id="result-weakness">---</p>
-        </article>
+        <h3 id="result-title">
+          ---
+        </h3>
 
-        <article>
-          <h3>未解決の要件</h3>
-          <ul id="result-unresolved"></ul>
-        </article>
+        <p id="result-explanation">
+          ---
+        </p>
+
       </div>
-    </section>
 
-    <section id="evaluation-panel" class="evaluation-panel card hidden">
-      <div class="evaluation-header">
-        <div>
-          <span class="result-eyebrow">EVALUATION</span>
-          <h2>評価</h2>
+
+      <div class="result-detail">
+
+        <div class="result-block">
+          <h3>
+            攻撃・防御の結果
+          </h3>
+
+          <p id="result-weakness">
+            ---
+          </p>
         </div>
-        <strong id="evaluation-grade" class="evaluation-grade">-</strong>
+
+
+        <div class="result-block">
+          <h3>
+            未解決の問題
+          </h3>
+
+          <ul id="result-unresolved">
+            <li>
+              ---
+            </li>
+          </ul>
+        </div>
+
       </div>
 
-      <ul id="requirement-list" class="requirement-list"></ul>
+    </section>
 
-      <p id="evaluation-summary" class="evaluation-summary">---</p>
 
-      <div class="evaluation-actions">
-        <a class="button button-secondary" href="index.html">トップへ戻る</a>
-        <button id="retry-button" class="button button-secondary" type="button">
+    <!-- ========================================
+         Evaluation
+         ======================================== -->
+
+    <section
+      id="evaluation-panel"
+      class="card evaluation-panel hidden"
+      aria-labelledby="evaluation-heading"
+    >
+
+      <div class="section-heading">
+        <h2 id="evaluation-heading">
+          評価
+        </h2>
+      </div>
+
+
+      <div class="evaluation-grade-area">
+
+        <span class="evaluation-grade-label">
+          GRADE
+        </span>
+
+        <strong
+          id="evaluation-grade"
+          class="evaluation-grade"
+        >
+          -
+        </strong>
+
+      </div>
+
+
+      <div class="evaluation-requirements">
+
+        <h3>
+          要件
+        </h3>
+
+        <ul
+          id="requirement-list"
+          class="requirement-list"
+        >
+          <!-- JSによって生成 -->
+        </ul>
+
+      </div>
+
+
+      <p
+        id="evaluation-summary"
+        class="evaluation-summary"
+      >
+        ---
+      </p>
+
+
+      <div class="evaluation-controls">
+
+        <button
+          id="retry-button"
+          class="button button-secondary"
+          type="button"
+        >
           もう一度試す
         </button>
-        <button id="next-stage-button" class="button" type="button">
-          次のステージ
+
+        <button
+          id="next-stage-button"
+          class="button"
+          type="button"
+        >
+          次のステージへ
         </button>
+
       </div>
+
     </section>
+
   </main>
 </body>
 </html>
