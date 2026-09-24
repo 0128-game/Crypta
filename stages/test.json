@@ -1,0 +1,69 @@
+{
+  "id": "test",
+  "unit": {
+    "id": "test-unit",
+    "name": "TEST UNIT"
+  },
+  "title": "動作確認ステージ",
+  "description": "simulation.html、simulation.css、simulation.js、JSON読み込みの動作を確認するためのテスト用ステージです。",
+  "goals": {
+    "final": "テスト用通信を正常に成立させる",
+    "a": {
+      "description": "指定された基本要件を満たす"
+    },
+    "b": {
+      "description": "追加の条件を満たす"
+    }
+  },
+  "attackers": {
+    "eve": {
+      "environment": {
+        "computational_capability": "低",
+        "communication_database": "小",
+        "observation_period": "短",
+        "known_information": "なし",
+        "observation_scope": "通信経路を観測可能"
+      }
+    },
+    "mallory": {
+      "environment": {
+        "intervention_scope": "限定的",
+        "attack_opportunity": "少",
+        "impersonation_scope": "限定的",
+        "known_information": "なし"
+      }
+    }
+  },
+  "tools": [
+    {
+      "id": "plaintext",
+      "name": "平文",
+      "description": "暗号化されていないデータを扱います。",
+      "default_side": "flow"
+    },
+    {
+      "id": "test_tool",
+      "name": "テスト用ツール",
+      "description": "JSONからツールを読み込めることを確認するための仮ツールです。",
+      "default_side": "flow"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "basic",
+      "description": "テスト用ツールを1つ以上使用する",
+      "required_tools": [
+        "test_tool"
+      ]
+    }
+  ],
+  "result": {
+    "success": {
+      "explanation": "テスト用の要件を満たしました。"
+    },
+    "failure": {
+      "explanation": "テスト用の要件を満たしていません。",
+      "weakness": "必要なテスト用ツールが構成に含まれていません。"
+    }
+  }
+}
