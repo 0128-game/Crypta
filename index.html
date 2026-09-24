@@ -3,61 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Crypta - 暗号通信シミュレーション">
   <title>Crypta</title>
   <link rel="stylesheet" href="css/common.css">
-  <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-  <main id="app" class="index-page">
+  <main class="page">
     <header class="site-header">
-      <div class="brand">
-        <p class="brand-label">CRYPTOGRAPHIC COMMUNICATION SIMULATION</p>
-        <h1>Crypta</h1>
-      </div>
-      <p class="brand-description">暗号通信を、組み立てて、試す。</p>
+      <h1>Crypta</h1>
+      <p>暗号通信を、組み立てて、試す。</p>
     </header>
 
-    <section class="start-panel" aria-labelledby="start-title">
-      <div>
-        <p class="section-label">SIMULATION</p>
-        <h2 id="start-title">通信を構築する</h2>
-        <p>まずはシミュレーション画面へ進み、AliceからBobへの通信を構築します。</p>
-      </div>
-      <a id="start-simulation" class="primary-button" href="simulation.html?stage=stage01">
-        シミュレーションを開始
-      </a>
+    <section class="card">
+      <h2>シミュレーション</h2>
+      <p>AliceからBobへの通信を構築し、攻撃から通信を守ります。</p>
+      <a class="button" href="simulation.html">シミュレーションを開始</a>
     </section>
-
-    <section class="stage-overview" aria-labelledby="stage-overview-title">
-      <div class="section-heading">
-        <p class="section-label">STAGE</p>
-        <h2 id="stage-overview-title">ステージ</h2>
-      </div>
-
-      <div class="stage-list">
-        <a class="stage-link" href="simulation.html?stage=stage01">Stage 01</a>
-        <a class="stage-link" href="simulation.html?stage=stage02">Stage 02</a>
-        <a class="stage-link" href="simulation.html?stage=stage03">Stage 03</a>
-        <a class="stage-link" href="simulation.html?stage=stage04">Stage 04</a>
-        <a class="stage-link" href="simulation.html?stage=stage05">Stage 05</a>
-        <a class="stage-link" href="simulation.html?stage=stage06">Stage 06</a>
-        <a class="stage-link" href="simulation.html?stage=stage07">Stage 07</a>
-        <a class="stage-link" href="simulation.html?stage=stage08">Stage 08</a>
-        <a class="stage-link" href="simulation.html?stage=stage09">Stage 09</a>
-        <a class="stage-link" href="simulation.html?stage=stage10">Stage 10</a>
-        <a class="stage-link" href="simulation.html?stage=stage11">Stage 11</a>
-        <a class="stage-link" href="simulation.html?stage=stage12">Stage 12</a>
-      </div>
-    </section>
-
-    <footer class="site-footer">
-      <span>CRYPTA</span>
-      <span>VERSION 0.1</span>
-    </footer>
   </main>
-
-  <script src="js/common.js" defer></script>
-  <script src="js/index.js" defer></script>
 </body>
 </html>
