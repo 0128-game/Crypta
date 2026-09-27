@@ -21,8 +21,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const stageNumber = button.dataset.stage;
 
+            const stageId =
+                String(stageNumber).padStart(2, "0");
+
             window.location.href =
-                `simulator.html?stage=${stageNumber}`;
+                `simulator.html?stage=${stageId}`;
         });
     });
 });
