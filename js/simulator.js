@@ -7,14 +7,14 @@ let currentStage = null;
 let communicationBlocks = [];
 
 
+/* ========================================
+   初期化
+   ======================================== */
+
 document.addEventListener("DOMContentLoaded", async () => {
     await initializeSimulator();
 });
 
-
-/* ========================================
-   初期化
-   ======================================== */
 
 async function initializeSimulator() {
 
@@ -25,44 +25,78 @@ async function initializeSimulator() {
         return;
     }
 
-    const stage = await loadStage(stageId);
+
+    const stage =
+        await loadStage(stageId);
+
 
     if (!stage) {
         handleStageError();
         return;
     }
 
+
     currentStage = stage;
+
+
+    /* ---------- ステージ表示 ---------- */
 
     renderStage(stage);
 
+
+    /* ---------- 初期通信 ---------- */
+
+    loadInitialCommunication(stage);
+
+
+    /* ---------- 攻撃者表示 ---------- */
+
+    renderAttackers(stage.attacker);
+
+
+    /* ---------- コンポーネント ---------- */
+
+    renderComponents(stage.components);
+
+
+    /* ---------- 初回フローティング ---------- */
+
     initializeCharacterIntro();
 
-    initializeObjectivePanel();
+
+    /* ---------- 通信エディタ ---------- */
 
     initializeCommunicationEditor();
 
+
+    /* ---------- シミュレーション ---------- */
+
     initializeSimulation();
+
+
+    /* ---------- 通信表示 ---------- */
 
     updateCommunicationView();
 }
 
 
 /* ========================================
-   URLからステージIDを取得
+   URLからステージID取得
    ======================================== */
 
 function getStageId() {
 
     const params =
-        new URLSearchParams(window.location.search);
+        new URLSearchParams(
+            window.location.search
+        );
 
     return params.get("stage");
 }
 
 
 /* ========================================
-   ステージデータ読み込み
+   ステージ読み込み
    ======================================== */
 
 async function loadStage(stageId) {
@@ -70,14 +104,17 @@ async function loadStage(stageId) {
     const path =
         `stages/${stageId}.json`;
 
+
     try {
 
         const response =
             await fetch(path);
 
+
         if (!response.ok) {
             return null;
         }
+
 
         return await response.json();
 
@@ -99,10 +136,13 @@ async function loadStage(stageId) {
 
 function renderStage(stage) {
 
-    /* ---------- ステージタイトル ---------- */
+    /* ---------- タイトル ---------- */
 
     const stageTitle =
-        document.getElementById("stageTitle");
+        document.getElementById(
+            "stageTitle"
+        );
+
 
     if (stageTitle) {
 
@@ -111,70 +151,56 @@ function renderStage(stage) {
     }
 
 
-    /* ---------- ステージ説明 ---------- */
+    /* ---------- 説明 ---------- */
 
     const stageDescription =
-        document.getElementById("stageDescription");
+        document.getElementById(
+            "stageDescription"
+        );
+
 
     if (stageDescription) {
 
         stageDescription.textContent =
             stage.description ?? "";
     }
+}
 
 
-    /* ---------- 目標 ---------- */
+/* ========================================
+   初期通信読み込み
+   ======================================== */
 
-    const finalObjectiveText =
-        document.getElementById("finalObjectiveText");
-
-    const objectiveAText =
-        document.getElementById("objectiveAText");
-
-    const objectiveBText =
-        document.getElementById("objectiveBText");
-
-
-    if (finalObjectiveText) {
-
-        finalObjectiveText.textContent =
-            stage.objective?.final ?? "";
-    }
-
-
-    if (objectiveAText) {
-
-        objectiveAText.textContent =
-            stage.objective?.A ?? "";
-    }
-
-
-    if (objectiveBText) {
-
-        objectiveBText.textContent =
-            stage.objective?.B ?? "";
-    }
-
-
-    /* ---------- 攻撃者 ---------- */
-
-    renderAttackers(stage.attacker);
-
-
-    /* ---------- コンポーネント ---------- */
-
-    renderComponents(stage.components);
-
-
-    /* ---------- 初期通信 ---------- */
+function loadInitialCommunication(stage) {
 
     if (
         stage.communication &&
-        Array.isArray(stage.communication.blocks)
+        Array.isArray(
+            stage.communication.blocks
+        )
     ) {
 
         communicationBlocks =
-            [...stage.communication.blocks];
+            stage.communication.blocks.map(
+                (block, index) => {
+
+                    return {
+                        id:
+                            block.id ??
+                            `initial-${index}`,
+
+                        componentId:
+                            block.componentId ??
+                            block.id,
+
+                        name:
+                            block.name ?? "",
+
+                        description:
+                            block.description ?? ""
+                    };
+                }
+            );
 
     } else {
 
@@ -190,10 +216,14 @@ function renderStage(stage) {
 function renderAttackers(attackers) {
 
     const attackerInfo =
-        document.getElementById("attackerInfo");
+        document.getElementById(
+            "attackerInfo"
+        );
 
-    const container =
-        document.getElementById("attackers");
+    const attackerContainer =
+        document.getElementById(
+            "attackers"
+        );
 
     const eveNode =
         document.getElementById("eve");
@@ -201,18 +231,36 @@ function renderAttackers(attackers) {
     const malloryNode =
         document.getElementById("mallory");
 
+    const eveIntro =
+        document.querySelector(
+            '[data-character="eve"]'
+        );
 
-    if (!container) {
-        return;
+    const malloryIntro =
+        document.querySelector(
+            '[data-character="mallory"]'
+        );
+
+
+    /* ---------- 初期状態 ---------- */
+
+    if (attackerContainer) {
+        attackerContainer.innerHTML = "";
     }
 
 
-    container.innerHTML = "";
-
-
     if (attackerInfo) {
-
         attackerInfo.classList.add("hidden");
+    }
+
+
+    if (eveNode) {
+        eveNode.classList.add("hidden");
+    }
+
+
+    if (malloryNode) {
+        malloryNode.classList.add("hidden");
     }
 
 
@@ -221,19 +269,20 @@ function renderAttackers(attackers) {
     const eve =
         attackers?.eve;
 
-    if (eve?.enabled) {
 
-        renderAttackerCard(eve);
+    if (eve?.enabled) {
 
         if (eveNode) {
             eveNode.classList.remove("hidden");
         }
 
-    } else {
 
-        if (eveNode) {
-            eveNode.classList.add("hidden");
+        if (eveIntro) {
+            eveIntro.classList.remove("hidden");
         }
+
+
+        renderAttackerCard(eve);
     }
 
 
@@ -242,40 +291,66 @@ function renderAttackers(attackers) {
     const mallory =
         attackers?.mallory;
 
-    if (mallory?.enabled) {
 
-        renderAttackerCard(mallory);
+    if (mallory?.enabled) {
 
         if (malloryNode) {
             malloryNode.classList.remove("hidden");
         }
 
-    } else {
 
-        if (malloryNode) {
-            malloryNode.classList.add("hidden");
+        if (malloryIntro) {
+            malloryIntro.classList.remove("hidden");
         }
+
+
+        renderAttackerCard(mallory);
+    }
+
+
+    /* ---------- 詳細情報 ---------- */
+
+    if (
+        attackerContainer &&
+        attackerContainer.children.length > 0 &&
+        attackerInfo
+    ) {
+
+        attackerInfo.classList.remove(
+            "hidden"
+        );
     }
 }
 
 
 /* ========================================
-   攻撃者カード生成
+   攻撃者カード
    ======================================== */
 
 function renderAttackerCard(attacker) {
 
     const container =
-        document.getElementById("attackers");
+        document.getElementById(
+            "attackers"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
 
     const card =
         document.createElement("div");
 
+
     card.className =
         "attacker";
 
+
     const title =
         document.createElement("h3");
+
 
     title.textContent =
         attacker.name ?? "攻撃者";
@@ -283,6 +358,7 @@ function renderAttackerCard(attacker) {
 
     const description =
         document.createElement("p");
+
 
     description.textContent =
         attacker.description ?? "";
@@ -303,7 +379,10 @@ function renderAttackerCard(attacker) {
 function renderComponents(components) {
 
     const container =
-        document.getElementById("componentList");
+        document.getElementById(
+            "componentList"
+        );
+
 
     if (!container) {
         return;
@@ -318,75 +397,97 @@ function renderComponents(components) {
     }
 
 
-    components.forEach((component) => {
+    components.forEach(
+        (component) => {
 
-        const element =
-            document.createElement("div");
-
-        element.className =
-            "component";
-
-        element.dataset.componentId =
-            component.id;
-
-        element.draggable = true;
-
-
-        const title =
-            document.createElement("strong");
-
-        title.textContent =
-            component.name ?? component.id;
-
-
-        const description =
-            document.createElement("p");
-
-        description.textContent =
-            component.description ?? "";
-
-
-        element.appendChild(title);
-
-        element.appendChild(description);
-
-
-        /* ---------- ドラッグ開始 ---------- */
-
-        element.addEventListener(
-            "dragstart",
-            (event) => {
-
-                event.dataTransfer.setData(
-                    "text/plain",
-                    component.id
+            const element =
+                document.createElement(
+                    "div"
                 );
 
-                event.dataTransfer.effectAllowed =
-                    "copy";
 
-                element.classList.add(
-                    "dragging"
+            element.className =
+                "component";
+
+
+            element.dataset.componentId =
+                component.id;
+
+
+            element.draggable = true;
+
+
+            const title =
+                document.createElement(
+                    "strong"
                 );
-            }
-        );
 
 
-        /* ---------- ドラッグ終了 ---------- */
+            title.textContent =
+                component.name ??
+                component.id;
 
-        element.addEventListener(
-            "dragend",
-            () => {
 
-                element.classList.remove(
-                    "dragging"
+            const description =
+                document.createElement(
+                    "p"
+                );
+
+
+            description.textContent =
+                component.description ??
+                "";
+
+
+            element.appendChild(title);
+
+            if (component.description) {
+
+                element.appendChild(
+                    description
                 );
             }
-        );
 
 
-        container.appendChild(element);
-    });
+            /* ---------- ドラッグ開始 ---------- */
+
+            element.addEventListener(
+                "dragstart",
+                (event) => {
+
+                    event.dataTransfer.setData(
+                        "application/crypta-component",
+                        component.id
+                    );
+
+
+                    event.dataTransfer.effectAllowed =
+                        "copy";
+
+
+                    element.classList.add(
+                        "dragging"
+                    );
+                }
+            );
+
+
+            /* ---------- ドラッグ終了 ---------- */
+
+            element.addEventListener(
+                "dragend",
+                () => {
+
+                    element.classList.remove(
+                        "dragging"
+                    );
+                }
+            );
+
+
+            container.appendChild(element);
+        }
+    );
 }
 
 
@@ -401,12 +502,13 @@ function initializeCommunicationEditor() {
             "communicationPath"
         );
 
+
     if (!path) {
         return;
     }
 
 
-    /* ---------- ドロップ ---------- */
+    /* ---------- コンポーネント追加 ---------- */
 
     path.addEventListener(
         "dragover",
@@ -414,12 +516,27 @@ function initializeCommunicationEditor() {
 
             event.preventDefault();
 
-            event.dataTransfer.dropEffect =
-                "copy";
 
-            path.classList.add(
-                "drag-over"
-            );
+            const componentId =
+                event.dataTransfer.getData(
+                    "application/crypta-component"
+                );
+
+
+            if (componentId) {
+
+                event.dataTransfer.dropEffect =
+                    "copy";
+
+                path.classList.add(
+                    "drag-over"
+                );
+
+            } else {
+
+                event.dataTransfer.dropEffect =
+                    "move";
+            }
         }
     );
 
@@ -448,25 +565,45 @@ function initializeCommunicationEditor() {
 
             event.preventDefault();
 
+
             path.classList.remove(
                 "drag-over"
             );
 
 
+            /* ---------- 新規コンポーネント ---------- */
+
             const componentId =
                 event.dataTransfer.getData(
-                    "text/plain"
+                    "application/crypta-component"
                 );
 
 
-            if (!componentId) {
+            if (componentId) {
+
+                addCommunicationBlock(
+                    componentId
+                );
+
                 return;
             }
 
 
-            addCommunicationBlock(
-                componentId
-            );
+            /* ---------- 既存ブロックの並べ替え ---------- */
+
+            const blockId =
+                event.dataTransfer.getData(
+                    "application/crypta-block"
+                );
+
+
+            if (blockId) {
+
+                moveCommunicationBlock(
+                    blockId,
+                    event.clientX
+                );
+            }
         }
     );
 
@@ -507,8 +644,11 @@ function initializeCommunicationEditor() {
             "click",
             () => {
 
-                resetCommunication();
+                loadInitialCommunication(
+                    currentStage
+                );
 
+                updateCommunicationView();
             }
         );
     }
@@ -519,7 +659,9 @@ function initializeCommunicationEditor() {
    通信ブロック追加
    ======================================== */
 
-function addCommunicationBlock(componentId) {
+function addCommunicationBlock(
+    componentId
+) {
 
     if (!currentStage) {
         return;
@@ -541,20 +683,39 @@ function addCommunicationBlock(componentId) {
     communicationBlocks.push({
 
         id:
-            `${component.id}-${Date.now()}-${Math.random()}`,
+            createBlockId(),
 
         componentId:
             component.id,
 
         name:
-            component.name ?? component.id,
+            component.name ??
+            component.id,
 
         description:
-            component.description ?? ""
+            component.description ??
+            ""
     });
 
 
     updateCommunicationView();
+}
+
+
+/* ========================================
+   通信ブロックID
+   ======================================== */
+
+function createBlockId() {
+
+    return (
+        "block-" +
+        Date.now() +
+        "-" +
+        Math.random()
+            .toString(36)
+            .slice(2)
+    );
 }
 
 
@@ -569,6 +730,7 @@ function updateCommunicationView() {
             "communicationPath"
         );
 
+
     if (!path) {
         return;
     }
@@ -577,26 +739,34 @@ function updateCommunicationView() {
     path.innerHTML = "";
 
 
-    /* ---------- 空の場合 ---------- */
+    /* ---------- 空 ---------- */
 
-    if (communicationBlocks.length === 0) {
+    if (
+        communicationBlocks.length === 0
+    ) {
 
         const placeholder =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         placeholder.id =
             "communicationPlaceholder";
 
+
         placeholder.className =
             "communication-placeholder";
 
+
         placeholder.textContent =
-            "ここに通信コンポーネントを配置";
+            "コンポーネントをここに配置";
 
 
         path.appendChild(
             placeholder
         );
+
 
         return;
     }
@@ -614,9 +784,7 @@ function updateCommunicationView() {
                 );
 
 
-            path.appendChild(
-                element
-            );
+            path.appendChild(element);
         }
     );
 }
@@ -632,34 +800,46 @@ function createCommunicationElement(
 ) {
 
     const element =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     element.className =
         "communication-block";
 
+
     element.dataset.blockId =
         block.id;
+
 
     element.draggable = true;
 
 
     const title =
-        document.createElement("strong");
+        document.createElement(
+            "strong"
+        );
+
 
     title.textContent =
         block.name;
 
 
-    const description =
-        document.createElement("p");
-
-    description.textContent =
-        block.description;
-
-
     element.appendChild(title);
 
+
     if (block.description) {
+
+        const description =
+            document.createElement(
+                "p"
+            );
+
+
+        description.textContent =
+            block.description;
+
 
         element.appendChild(
             description
@@ -674,12 +854,14 @@ function createCommunicationElement(
         (event) => {
 
             event.dataTransfer.setData(
-                "text/plain",
+                "application/crypta-block",
                 block.id
             );
 
+
             event.dataTransfer.effectAllowed =
                 "move";
+
 
             element.classList.add(
                 "dragging"
@@ -701,7 +883,7 @@ function createCommunicationElement(
     );
 
 
-    /* ---------- クリックで削除 ---------- */
+    /* ---------- ダブルクリック削除 ---------- */
 
     element.addEventListener(
         "dblclick",
@@ -738,25 +920,102 @@ function removeCommunicationBlock(
 
 
 /* ========================================
-   通信リセット
+   通信ブロック並べ替え
    ======================================== */
 
-function resetCommunication() {
+function moveCommunicationBlock(
+    blockId,
+    mouseX
+) {
 
-    if (
-        currentStage?.communication &&
-        Array.isArray(
-            currentStage.communication.blocks
-        )
+    const path =
+        document.getElementById(
+            "communicationPath"
+        );
+
+
+    if (!path) {
+        return;
+    }
+
+
+    const draggedIndex =
+        communicationBlocks.findIndex(
+            (block) =>
+                block.id === blockId
+        );
+
+
+    if (draggedIndex === -1) {
+        return;
+    }
+
+
+    const draggedBlock =
+        communicationBlocks[
+            draggedIndex
+        ];
+
+
+    communicationBlocks.splice(
+        draggedIndex,
+        1
+    );
+
+
+    const elements =
+        Array.from(
+            path.querySelectorAll(
+                ".communication-block"
+            )
+        );
+
+
+    let newIndex =
+        communicationBlocks.length;
+
+
+    for (
+        let index = 0;
+        index < elements.length;
+        index++
     ) {
 
-        communicationBlocks =
-            [...currentStage.communication.blocks];
+        const element =
+            elements[index];
 
-    } else {
 
-        communicationBlocks = [];
+        const rect =
+            element.getBoundingClientRect();
+
+
+        if (
+            mouseX <
+            rect.left +
+            rect.width / 2
+        ) {
+
+            const targetId =
+                element.dataset.blockId;
+
+
+            newIndex =
+                communicationBlocks.findIndex(
+                    (block) =>
+                        block.id === targetId
+                );
+
+
+            break;
+        }
     }
+
+
+    communicationBlocks.splice(
+        newIndex,
+        0,
+        draggedBlock
+    );
 
 
     updateCommunicationView();
@@ -764,7 +1023,7 @@ function resetCommunication() {
 
 
 /* ========================================
-   初回キャラクター説明
+   初回フローティング
    ======================================== */
 
 function initializeCharacterIntro() {
@@ -774,10 +1033,12 @@ function initializeCharacterIntro() {
             "characterIntro"
         );
 
+
     const closeButton =
         document.getElementById(
             "closeCharacterIntro"
         );
+
 
     const startButton =
         document.getElementById(
@@ -789,6 +1050,18 @@ function initializeCharacterIntro() {
         return;
     }
 
+
+    /* ---------- 目標をフローティングへ ---------- */
+
+    renderIntroObjectives();
+
+
+    /* ---------- 不要な攻撃者を非表示 ---------- */
+
+    updateIntroAttackers();
+
+
+    /* ---------- 初回表示 ---------- */
 
     const hasShown =
         sessionStorage.getItem(
@@ -804,11 +1077,14 @@ function initializeCharacterIntro() {
     }
 
 
+    /* ---------- 閉じる ---------- */
+
     const closeIntro = () => {
 
         intro.classList.add(
             "hidden"
         );
+
 
         sessionStorage.setItem(
             "crypta-character-intro",
@@ -851,57 +1127,114 @@ function initializeCharacterIntro() {
 
 
 /* ========================================
-   目標パネル
+   フローティング目標表示
    ======================================== */
 
-function initializeObjectivePanel() {
+function renderIntroObjectives() {
 
-    const panel =
-        document.getElementById(
-            "objectivePanel"
-        );
-
-    const openButton =
-        document.getElementById(
-            "objectiveButton"
-        );
-
-    const closeButton =
-        document.getElementById(
-            "closeObjectiveButton"
-        );
-
-
-    if (!panel) {
+    if (!currentStage) {
         return;
     }
 
 
-    if (openButton) {
-
-        openButton.addEventListener(
-            "click",
-            () => {
-
-                panel.classList.remove(
-                    "hidden"
-                );
-            }
+    const finalText =
+        document.getElementById(
+            "introFinalObjectiveText"
         );
+
+
+    const objectiveAText =
+        document.getElementById(
+            "introObjectiveAText"
+        );
+
+
+    const objectiveBText =
+        document.getElementById(
+            "introObjectiveBText"
+        );
+
+
+    if (finalText) {
+
+        finalText.textContent =
+            currentStage.objective?.final ??
+            "";
     }
 
 
-    if (closeButton) {
+    if (objectiveAText) {
 
-        closeButton.addEventListener(
-            "click",
-            () => {
+        objectiveAText.textContent =
+            currentStage.objective?.A ??
+            "";
+    }
 
-                panel.classList.add(
-                    "hidden"
-                );
-            }
+
+    if (objectiveBText) {
+
+        objectiveBText.textContent =
+            currentStage.objective?.B ??
+            "";
+    }
+}
+
+
+/* ========================================
+   フローティングの攻撃者表示
+   ======================================== */
+
+function updateIntroAttackers() {
+
+    const attackers =
+        currentStage?.attacker;
+
+
+    const eveIntro =
+        document.querySelector(
+            '.intro-character-card[data-character="eve"]'
         );
+
+
+    const malloryIntro =
+        document.querySelector(
+            '.intro-character-card[data-character="mallory"]'
+        );
+
+
+    if (eveIntro) {
+
+        if (attackers?.eve?.enabled) {
+
+            eveIntro.classList.remove(
+                "hidden"
+            );
+
+        } else {
+
+            eveIntro.classList.add(
+                "hidden"
+            );
+        }
+    }
+
+
+    if (malloryIntro) {
+
+        if (
+            attackers?.mallory?.enabled
+        ) {
+
+            malloryIntro.classList.remove(
+                "hidden"
+            );
+
+        } else {
+
+            malloryIntro.classList.add(
+                "hidden"
+            );
+        }
     }
 }
 
@@ -944,15 +1277,18 @@ function startSimulation() {
             "simulation"
         );
 
+
     const simulationArea =
         document.getElementById(
             "simulationArea"
         );
 
+
     const result =
         document.getElementById(
             "result"
         );
+
 
     const resultMessage =
         document.getElementById(
@@ -984,40 +1320,43 @@ function startSimulation() {
 
 
     /*
-     * 現段階では通信設計エディタの動作確認。
+     * 現段階ではエディタ動作確認用。
      *
      * 今後ここに、
      * Eve / Mallory の攻撃処理、
-     * 要求判定、
+     * 通信要件の判定、
      * 突破演出、
-     * S/A/B/C評価
-     * を追加する。
+     * S / A / B / C 評価
+     * を実装する。
      */
 
-    setTimeout(() => {
+    setTimeout(
+        () => {
 
-        if (simulationArea) {
+            if (simulationArea) {
 
-            simulationArea.textContent =
-                "通信のシミュレーションが完了しました。";
-        }
-
-
-        if (result) {
-
-            result.classList.remove(
-                "hidden"
-            );
-        }
+                simulationArea.textContent =
+                    "通信のシミュレーションが完了しました。";
+            }
 
 
-        if (resultMessage) {
+            if (result) {
 
-            resultMessage.textContent =
-                "現在は通信設計エディタの動作確認用です。";
-        }
+                result.classList.remove(
+                    "hidden"
+                );
+            }
 
-    }, 500);
+
+            if (resultMessage) {
+
+                resultMessage.textContent =
+                    "現在は通信設計エディタの動作確認用です。";
+            }
+
+        },
+        500
+    );
 }
 
 
@@ -1030,6 +1369,7 @@ function handleStageError() {
     alert(
         "そのステージは存在しません。"
     );
+
 
     window.location.href =
         "index.html";
