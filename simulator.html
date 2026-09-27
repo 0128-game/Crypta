@@ -13,7 +13,8 @@
 <body>
 
     <!-- ========================================
-         初回フローティング説明
+         初回フローティング
+         キャラクター説明 + 目標
          ======================================== -->
 
     <div id="characterIntro" class="character-intro hidden">
@@ -21,7 +22,10 @@
         <div class="character-intro-window">
 
             <div class="character-intro-header">
-                <h2>通信を設計する前に</h2>
+
+                <h2 id="introTitle">
+                    このステージについて
+                </h2>
 
                 <button
                     id="closeCharacterIntro"
@@ -30,73 +34,155 @@
                 >
                     ×
                 </button>
+
             </div>
+
 
             <div id="characterIntroContent">
 
-                <div class="intro-character-card" data-character="alice">
+                <!-- キャラクター説明 -->
+
+                <div
+                    class="intro-character-card"
+                    data-character="alice"
+                >
+
                     <div class="intro-character-icon">
                         Alice
                     </div>
 
                     <div>
                         <h3>Alice</h3>
+
                         <p>
                             メッセージを送信する側です。
                         </p>
                     </div>
+
                 </div>
 
-                <div class="intro-character-card" data-character="bob">
+
+                <div
+                    class="intro-character-card"
+                    data-character="bob"
+                >
+
                     <div class="intro-character-icon">
                         Bob
                     </div>
 
                     <div>
                         <h3>Bob</h3>
+
                         <p>
                             メッセージを受信する側です。
                         </p>
                     </div>
+
                 </div>
 
-                <div class="intro-character-card" data-character="eve">
+
+                <div
+                    class="intro-character-card"
+                    data-character="eve"
+                >
+
                     <div class="intro-character-icon">
                         Eve
                     </div>
 
                     <div>
                         <h3>Eve</h3>
+
                         <p>
                             通信を盗聴する攻撃者です。
                             通信内容を見ようとします。
                         </p>
                     </div>
+
                 </div>
 
-                <div class="intro-character-card" data-character="mallory">
+
+                <div
+                    class="intro-character-card"
+                    data-character="mallory"
+                >
+
                     <div class="intro-character-icon">
                         Mallory
                     </div>
 
                     <div>
                         <h3>Mallory</h3>
+
                         <p>
                             通信を妨害・改ざんしたり、
                             AliceやBobになりすましたりする攻撃者です。
                         </p>
                     </div>
+
+                </div>
+
+
+                <!-- ステージ目標 -->
+
+                <div
+                    id="introObjectives"
+                    class="intro-objectives"
+                >
+
+                    <h3>このステージの目標</h3>
+
+
+                    <div
+                        id="introFinalObjective"
+                        class="intro-objective final"
+                    >
+
+                        <span>最終目標</span>
+
+                        <p id="introFinalObjectiveText"></p>
+
+                    </div>
+
+
+                    <div
+                        id="introObjectiveA"
+                        class="intro-objective objective-a"
+                    >
+
+                        <span>Objective A</span>
+
+                        <p id="introObjectiveAText"></p>
+
+                    </div>
+
+
+                    <div
+                        id="introObjectiveB"
+                        class="intro-objective objective-b"
+                    >
+
+                        <span>Objective B</span>
+
+                        <p id="introObjectiveBText"></p>
+
+                    </div>
+
                 </div>
 
             </div>
 
+
             <div class="character-intro-footer">
+
                 <button
                     id="closeCharacterIntroButton"
                     type="button"
                 >
                     通信設計を始める
                 </button>
+
             </div>
 
         </div>
@@ -105,7 +191,7 @@
 
 
     <!-- ========================================
-         ヘッダー
+         エディタヘッダー
          ======================================== -->
 
     <header id="editorHeader">
@@ -115,21 +201,17 @@
             <h1>CRYPTA</h1>
 
             <div id="stageHeader">
+
                 <span id="stageTitle">
                     Stage
                 </span>
+
             </div>
 
         </div>
 
-        <div class="editor-header-right">
 
-            <button
-                id="objectiveButton"
-                type="button"
-            >
-                目標
-            </button>
+        <div class="editor-header-right">
 
             <button
                 id="simulateButton"
@@ -151,10 +233,13 @@
 
 
         <!-- ====================================
-             ステージ情報
+             ステージ説明
              ==================================== -->
 
-        <section id="stageInfo" class="editor-panel">
+        <section
+            id="stageInfo"
+            class="editor-panel"
+        >
 
             <div id="stageDescription"></div>
 
@@ -162,7 +247,7 @@
 
 
         <!-- ====================================
-             通信設計エリア
+             通信エディタ
              ==================================== -->
 
         <section
@@ -170,28 +255,8 @@
             class="editor-panel"
         >
 
-            <div class="editor-panel-header">
-
-                <div>
-                    <h2>通信を設計する</h2>
-
-                    <p>
-                        AliceからBobまでの通信経路を作成してください。
-                    </p>
-                </div>
-
-                <div id="editorStatus">
-                    通信を設計中
-                </div>
-
-            </div>
-
-
-            <!-- ================================
-                 通信キャンバス
-                 ================================ -->
-
             <div id="communicationCanvas">
+
 
                 <!-- Alice -->
 
@@ -223,7 +288,7 @@
                         id="communicationPlaceholder"
                         class="communication-placeholder"
                     >
-                        ここに通信コンポーネントを配置
+                        コンポーネントをここに配置
                     </div>
 
                 </div>
@@ -252,7 +317,7 @@
 
                 <div
                     id="eve"
-                    class="attacker-node"
+                    class="attacker-node hidden"
                     data-character="eve"
                 >
 
@@ -271,7 +336,7 @@
 
                 <div
                     id="mallory"
-                    class="attacker-node"
+                    class="attacker-node hidden"
                     data-character="mallory"
                 >
 
@@ -288,9 +353,7 @@
             </div>
 
 
-            <!-- ================================
-                 通信操作
-                 ================================ -->
+            <!-- 通信操作 -->
 
             <div id="communicationControls">
 
@@ -314,7 +377,7 @@
 
 
         <!-- ====================================
-             コンポーネントエリア
+             コンポーネント
              ==================================== -->
 
         <section
@@ -322,84 +385,25 @@
             class="editor-panel"
         >
 
-            <div class="editor-panel-header">
+            <div class="component-editor-title">
+                <h2>コンポーネント</h2>
 
-                <div>
-
-                    <h2>コンポーネント</h2>
-
-                    <p>
-                        使用したいコンポーネントを
-                        通信経路へドラッグしてください。
-                    </p>
-
-                </div>
-
+                <p>
+                    使用するコンポーネントを
+                    通信経路へドラッグしてください。
+                </p>
             </div>
 
 
             <div id="componentList">
-
-                <!--
-                    simulator.js によって
-                    ステージごとのコンポーネントを生成
-                -->
-
+                <!-- simulator.js が生成 -->
             </div>
 
         </section>
 
 
         <!-- ====================================
-             目標パネル
-             ==================================== -->
-
-        <section
-            id="objectivePanel"
-            class="editor-panel hidden"
-        >
-
-            <div class="editor-panel-header">
-
-                <div>
-                    <h2>ステージ目標</h2>
-                </div>
-
-                <button
-                    id="closeObjectiveButton"
-                    type="button"
-                    aria-label="目標を閉じる"
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            <div id="objectives">
-
-                <div id="finalObjective">
-                    <h3>最終目標</h3>
-                    <p id="finalObjectiveText"></p>
-                </div>
-
-                <div id="objectiveA">
-                    <h3>Objective A</h3>
-                    <p id="objectiveAText"></p>
-                </div>
-
-                <div id="objectiveB">
-                    <h3>Objective B</h3>
-                    <p id="objectiveBText"></p>
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- ====================================
-             攻撃者情報
+             攻撃者詳細
              ==================================== -->
 
         <section
@@ -409,13 +413,7 @@
 
             <h2>攻撃者情報</h2>
 
-            <div id="attackers">
-
-                <!--
-                    simulator.js によって生成
-                -->
-
-            </div>
+            <div id="attackers"></div>
 
         </section>
 
