@@ -13,8 +13,7 @@
 <body>
 
     <!-- ========================================
-         初回フローティング
-         キャラクター説明 + 目標
+         ステージ開始時の説明
          ======================================== -->
 
     <div id="characterIntro" class="character-intro hidden">
@@ -37,16 +36,12 @@
 
             </div>
 
-
             <div id="characterIntroContent">
-
-                <!-- キャラクター説明 -->
 
                 <div
                     class="intro-character-card"
                     data-character="alice"
                 >
-
                     <div class="intro-character-icon">
                         Alice
                     </div>
@@ -58,15 +53,12 @@
                             メッセージを送信する側です。
                         </p>
                     </div>
-
                 </div>
-
 
                 <div
                     class="intro-character-card"
                     data-character="bob"
                 >
-
                     <div class="intro-character-icon">
                         Bob
                     </div>
@@ -78,15 +70,12 @@
                             メッセージを受信する側です。
                         </p>
                     </div>
-
                 </div>
-
 
                 <div
                     class="intro-character-card"
                     data-character="eve"
                 >
-
                     <div class="intro-character-icon">
                         Eve
                     </div>
@@ -99,15 +88,12 @@
                             通信内容を見ようとします。
                         </p>
                     </div>
-
                 </div>
-
 
                 <div
                     class="intro-character-card"
                     data-character="mallory"
                 >
-
                     <div class="intro-character-icon">
                         Mallory
                     </div>
@@ -120,11 +106,9 @@
                             AliceやBobになりすましたりする攻撃者です。
                         </p>
                     </div>
-
                 </div>
 
-
-                <!-- ステージ目標 -->
+                <!-- 目標 -->
 
                 <div
                     id="introObjectives"
@@ -133,46 +117,36 @@
 
                     <h3>このステージの目標</h3>
 
-
                     <div
                         id="introFinalObjective"
                         class="intro-objective final"
                     >
-
                         <span>最終目標</span>
 
                         <p id="introFinalObjectiveText"></p>
-
                     </div>
-
 
                     <div
                         id="introObjectiveA"
                         class="intro-objective objective-a"
                     >
-
                         <span>Objective A</span>
 
                         <p id="introObjectiveAText"></p>
-
                     </div>
-
 
                     <div
                         id="introObjectiveB"
                         class="intro-objective objective-b"
                     >
-
                         <span>Objective B</span>
 
                         <p id="introObjectiveBText"></p>
-
                     </div>
 
                 </div>
 
             </div>
-
 
             <div class="character-intro-footer">
 
@@ -201,15 +175,12 @@
             <h1>CRYPTA</h1>
 
             <div id="stageHeader">
-
                 <span id="stageTitle">
                     Stage
                 </span>
-
             </div>
 
         </div>
-
 
         <div class="editor-header-right">
 
@@ -231,23 +202,8 @@
 
     <main id="simulatorEditor">
 
-
         <!-- ====================================
-             ステージ説明
-             ==================================== -->
-
-        <section
-            id="stageInfo"
-            class="editor-panel"
-        >
-
-            <div id="stageDescription"></div>
-
-        </section>
-
-
-        <!-- ====================================
-             通信エディタ
+             上部：通信設計キャンバス
              ==================================== -->
 
         <section
@@ -257,7 +213,6 @@
 
             <div id="communicationCanvas">
 
-
                 <!-- Alice -->
 
                 <div
@@ -265,7 +220,6 @@
                     class="character-node"
                     data-character="alice"
                 >
-
                     <div class="character-node-name">
                         Alice
                     </div>
@@ -273,7 +227,6 @@
                     <div class="character-node-role">
                         送信者
                     </div>
-
                 </div>
 
 
@@ -301,7 +254,6 @@
                     class="character-node"
                     data-character="bob"
                 >
-
                     <div class="character-node-name">
                         Bob
                     </div>
@@ -309,7 +261,6 @@
                     <div class="character-node-role">
                         受信者
                     </div>
-
                 </div>
 
 
@@ -320,7 +271,6 @@
                     class="attacker-node hidden"
                     data-character="eve"
                 >
-
                     <div class="attacker-node-name">
                         Eve
                     </div>
@@ -328,7 +278,6 @@
                     <div class="attacker-node-role">
                         盗聴
                     </div>
-
                 </div>
 
 
@@ -339,7 +288,6 @@
                     class="attacker-node hidden"
                     data-character="mallory"
                 >
-
                     <div class="attacker-node-name">
                         Mallory
                     </div>
@@ -347,7 +295,6 @@
                     <div class="attacker-node-role">
                         改ざん・なりすまし
                     </div>
-
                 </div>
 
             </div>
@@ -377,7 +324,7 @@
 
 
         <!-- ====================================
-             コンポーネント
+             下部：コンポーネント置き場
              ==================================== -->
 
         <section
@@ -386,75 +333,21 @@
         >
 
             <div class="component-editor-title">
-                <h2>コンポーネント</h2>
 
-                <p>
-                    使用するコンポーネントを
-                    通信経路へドラッグしてください。
-                </p>
+                <div>
+                    <h2>コンポーネント</h2>
+
+                    <p>
+                        使いたいコンポーネントを
+                        通信経路へドラッグしてください。
+                    </p>
+                </div>
+
             </div>
 
 
             <div id="componentList">
-                <!-- simulator.js が生成 -->
-            </div>
-
-        </section>
-
-
-        <!-- ====================================
-             攻撃者詳細
-             ==================================== -->
-
-        <section
-            id="attackerInfo"
-            class="editor-panel hidden"
-        >
-
-            <h2>攻撃者情報</h2>
-
-            <div id="attackers"></div>
-
-        </section>
-
-
-        <!-- ====================================
-             シミュレーション
-             ==================================== -->
-
-        <section
-            id="simulation"
-            class="editor-panel hidden"
-        >
-
-            <h2>シミュレーション</h2>
-
-            <div id="simulationArea"></div>
-
-        </section>
-
-
-        <!-- ====================================
-             結果
-             ==================================== -->
-
-        <section
-            id="result"
-            class="editor-panel hidden"
-        >
-
-            <h2>結果</h2>
-
-            <div id="resultMessage"></div>
-
-            <div id="evaluation">
-
-                <h3>評価</h3>
-
-                <p id="evaluationRank"></p>
-
-                <p id="evaluationReason"></p>
-
+                <!-- JSで生成 -->
             </div>
 
         </section>
@@ -463,12 +356,47 @@
 
 
     <!-- ========================================
-         フッター
+         以下は今後のシミュレーション用
          ======================================== -->
 
-    <footer>
-        <p>CRYPTA</p>
-    </footer>
+    <section
+        id="attackerInfo"
+        class="editor-panel hidden"
+    >
+        <h2>攻撃者情報</h2>
+
+        <div id="attackers"></div>
+    </section>
+
+
+    <section
+        id="simulation"
+        class="editor-panel hidden"
+    >
+        <h2>シミュレーション</h2>
+
+        <div id="simulationArea"></div>
+    </section>
+
+
+    <section
+        id="result"
+        class="editor-panel hidden"
+    >
+        <h2>結果</h2>
+
+        <div id="resultMessage"></div>
+
+        <div id="evaluation">
+
+            <h3>評価</h3>
+
+            <p id="evaluationRank"></p>
+
+            <p id="evaluationReason"></p>
+
+        </div>
+    </section>
 
 
     <script src="js/simulator.js"></script>
