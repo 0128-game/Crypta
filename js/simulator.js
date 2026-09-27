@@ -1,6 +1,6 @@
 /* ========================================
    CRYPTA - simulator.js
-   通信設計エディタ
+   大型通信設計エディタ
    ======================================== */
 
 let currentStage = null;
@@ -39,42 +39,19 @@ async function initializeSimulator() {
     currentStage = stage;
 
 
-    /* ---------- ステージ表示 ---------- */
-
     renderStage(stage);
-
-
-    /* ---------- 初期通信 ---------- */
 
     loadInitialCommunication(stage);
 
-
-    /* ---------- 攻撃者表示 ---------- */
-
     renderAttackers(stage.attacker);
-
-
-    /* ---------- コンポーネント ---------- */
 
     renderComponents(stage.components);
 
-
-    /* ---------- 初回フローティング ---------- */
-
     initializeCharacterIntro();
-
-
-    /* ---------- 通信エディタ ---------- */
 
     initializeCommunicationEditor();
 
-
-    /* ---------- シミュレーション ---------- */
-
     initializeSimulation();
-
-
-    /* ---------- 通信表示 ---------- */
 
     updateCommunicationView();
 }
@@ -104,17 +81,14 @@ async function loadStage(stageId) {
     const path =
         `stages/${stageId}.json`;
 
-
     try {
 
         const response =
             await fetch(path);
 
-
         if (!response.ok) {
             return null;
         }
-
 
         return await response.json();
 
@@ -136,8 +110,6 @@ async function loadStage(stageId) {
 
 function renderStage(stage) {
 
-    /* ---------- タイトル ---------- */
-
     const stageTitle =
         document.getElementById(
             "stageTitle"
@@ -150,8 +122,6 @@ function renderStage(stage) {
             stage.title ?? "Stage";
     }
 
-
-    /* ---------- 説明 ---------- */
 
     const stageDescription =
         document.getElementById(
@@ -168,7 +138,7 @@ function renderStage(stage) {
 
 
 /* ========================================
-   初期通信読み込み
+   初期通信
    ======================================== */
 
 function loadInitialCommunication(stage) {
@@ -185,6 +155,7 @@ function loadInitialCommunication(stage) {
                 (block, index) => {
 
                     return {
+
                         id:
                             block.id ??
                             `initial-${index}`,
@@ -215,52 +186,23 @@ function loadInitialCommunication(stage) {
 
 function renderAttackers(attackers) {
 
-    const attackerInfo =
-        document.getElementById(
-            "attackerInfo"
-        );
-
     const attackerContainer =
         document.getElementById(
             "attackers"
         );
 
+
     const eveNode =
         document.getElementById("eve");
+
 
     const malloryNode =
         document.getElementById("mallory");
 
-    const eveIntro =
-        document.querySelector(
-            '[data-character="eve"]'
-        );
-
-    const malloryIntro =
-        document.querySelector(
-            '[data-character="mallory"]'
-        );
-
-
-    /* ---------- 初期状態 ---------- */
 
     if (attackerContainer) {
+
         attackerContainer.innerHTML = "";
-    }
-
-
-    if (attackerInfo) {
-        attackerInfo.classList.add("hidden");
-    }
-
-
-    if (eveNode) {
-        eveNode.classList.add("hidden");
-    }
-
-
-    if (malloryNode) {
-        malloryNode.classList.add("hidden");
     }
 
 
@@ -273,16 +215,23 @@ function renderAttackers(attackers) {
     if (eve?.enabled) {
 
         if (eveNode) {
-            eveNode.classList.remove("hidden");
-        }
 
-
-        if (eveIntro) {
-            eveIntro.classList.remove("hidden");
+            eveNode.classList.remove(
+                "hidden"
+            );
         }
 
 
         renderAttackerCard(eve);
+
+    } else {
+
+        if (eveNode) {
+
+            eveNode.classList.add(
+                "hidden"
+            );
+        }
     }
 
 
@@ -295,30 +244,23 @@ function renderAttackers(attackers) {
     if (mallory?.enabled) {
 
         if (malloryNode) {
-            malloryNode.classList.remove("hidden");
-        }
 
-
-        if (malloryIntro) {
-            malloryIntro.classList.remove("hidden");
+            malloryNode.classList.remove(
+                "hidden"
+            );
         }
 
 
         renderAttackerCard(mallory);
-    }
 
+    } else {
 
-    /* ---------- 詳細情報 ---------- */
+        if (malloryNode) {
 
-    if (
-        attackerContainer &&
-        attackerContainer.children.length > 0 &&
-        attackerInfo
-    ) {
-
-        attackerInfo.classList.remove(
-            "hidden"
-        );
+            malloryNode.classList.add(
+                "hidden"
+            );
+        }
     }
 }
 
@@ -341,7 +283,9 @@ function renderAttackerCard(attacker) {
 
 
     const card =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
 
     card.className =
@@ -349,7 +293,9 @@ function renderAttackerCard(attacker) {
 
 
     const title =
-        document.createElement("h3");
+        document.createElement(
+            "h3"
+        );
 
 
     title.textContent =
@@ -357,7 +303,9 @@ function renderAttackerCard(attacker) {
 
 
     const description =
-        document.createElement("p");
+        document.createElement(
+            "p"
+        );
 
 
     description.textContent =
@@ -441,6 +389,7 @@ function renderComponents(components) {
 
             element.appendChild(title);
 
+
             if (component.description) {
 
                 element.appendChild(
@@ -448,8 +397,6 @@ function renderComponents(components) {
                 );
             }
 
-
-            /* ---------- ドラッグ開始 ---------- */
 
             element.addEventListener(
                 "dragstart",
@@ -472,8 +419,6 @@ function renderComponents(components) {
             );
 
 
-            /* ---------- ドラッグ終了 ---------- */
-
             element.addEventListener(
                 "dragend",
                 () => {
@@ -492,7 +437,7 @@ function renderComponents(components) {
 
 
 /* ========================================
-   通信エディタ初期化
+   通信エディタ
    ======================================== */
 
 function initializeCommunicationEditor() {
@@ -508,7 +453,7 @@ function initializeCommunicationEditor() {
     }
 
 
-    /* ---------- コンポーネント追加 ---------- */
+    /* ---------- ドラッグオーバー ---------- */
 
     path.addEventListener(
         "dragover",
@@ -528,18 +473,21 @@ function initializeCommunicationEditor() {
                 event.dataTransfer.dropEffect =
                     "copy";
 
-                path.classList.add(
-                    "drag-over"
-                );
-
             } else {
 
                 event.dataTransfer.dropEffect =
                     "move";
             }
+
+
+            path.classList.add(
+                "drag-over"
+            );
         }
     );
 
+
+    /* ---------- ドラッグ離脱 ---------- */
 
     path.addEventListener(
         "dragleave",
@@ -559,6 +507,8 @@ function initializeCommunicationEditor() {
     );
 
 
+    /* ---------- ドロップ ---------- */
+
     path.addEventListener(
         "drop",
         (event) => {
@@ -570,8 +520,6 @@ function initializeCommunicationEditor() {
                 "drag-over"
             );
 
-
-            /* ---------- 新規コンポーネント ---------- */
 
             const componentId =
                 event.dataTransfer.getData(
@@ -588,8 +536,6 @@ function initializeCommunicationEditor() {
                 return;
             }
 
-
-            /* ---------- 既存ブロックの並べ替え ---------- */
 
             const blockId =
                 event.dataTransfer.getData(
@@ -656,7 +602,7 @@ function initializeCommunicationEditor() {
 
 
 /* ========================================
-   通信ブロック追加
+   コンポーネント追加
    ======================================== */
 
 function addCommunicationBlock(
@@ -703,7 +649,7 @@ function addCommunicationBlock(
 
 
 /* ========================================
-   通信ブロックID
+   ブロックID生成
    ======================================== */
 
 function createBlockId() {
@@ -739,8 +685,6 @@ function updateCommunicationView() {
     path.innerHTML = "";
 
 
-    /* ---------- 空 ---------- */
-
     if (
         communicationBlocks.length === 0
     ) {
@@ -771,8 +715,6 @@ function updateCommunicationView() {
         return;
     }
 
-
-    /* ---------- ブロック生成 ---------- */
 
     communicationBlocks.forEach(
         (block, index) => {
@@ -847,8 +789,6 @@ function createCommunicationElement(
     }
 
 
-    /* ---------- ドラッグ開始 ---------- */
-
     element.addEventListener(
         "dragstart",
         (event) => {
@@ -870,8 +810,6 @@ function createCommunicationElement(
     );
 
 
-    /* ---------- ドラッグ終了 ---------- */
-
     element.addEventListener(
         "dragend",
         () => {
@@ -882,8 +820,6 @@ function createCommunicationElement(
         }
     );
 
-
-    /* ---------- ダブルクリック削除 ---------- */
 
     element.addEventListener(
         "dblclick",
@@ -1051,30 +987,19 @@ function initializeCharacterIntro() {
     }
 
 
-    /* ---------- 目標をフローティングへ ---------- */
+    /*
+     * ステージを開いたら必ず表示する。
+     * sessionStorageは使用しない。
+     */
 
     renderIntroObjectives();
-
-
-    /* ---------- 不要な攻撃者を非表示 ---------- */
 
     updateIntroAttackers();
 
 
-    /* ---------- 初回表示 ---------- */
-
-    const hasShown =
-        sessionStorage.getItem(
-            "crypta-character-intro"
-        );
-
-
-    if (!hasShown) {
-
-        intro.classList.remove(
-            "hidden"
-        );
-    }
+    intro.classList.remove(
+        "hidden"
+    );
 
 
     /* ---------- 閉じる ---------- */
@@ -1083,12 +1008,6 @@ function initializeCharacterIntro() {
 
         intro.classList.add(
             "hidden"
-        );
-
-
-        sessionStorage.setItem(
-            "crypta-character-intro",
-            "shown"
         );
     };
 
@@ -1127,12 +1046,16 @@ function initializeCharacterIntro() {
 
 
 /* ========================================
-   フローティング目標表示
+   フローティング目標
    ======================================== */
 
 function renderIntroObjectives() {
 
-    if (!currentStage) {
+    const objective =
+        currentStage?.objective;
+
+
+    if (!objective) {
         return;
     }
 
@@ -1158,30 +1081,27 @@ function renderIntroObjectives() {
     if (finalText) {
 
         finalText.textContent =
-            currentStage.objective?.final ??
-            "";
+            objective.final ?? "";
     }
 
 
     if (objectiveAText) {
 
         objectiveAText.textContent =
-            currentStage.objective?.A ??
-            "";
+            objective.A ?? "";
     }
 
 
     if (objectiveBText) {
 
         objectiveBText.textContent =
-            currentStage.objective?.B ??
-            "";
+            objective.B ?? "";
     }
 }
 
 
 /* ========================================
-   フローティングの攻撃者表示
+   フローティング内攻撃者表示
    ======================================== */
 
 function updateIntroAttackers() {
@@ -1204,37 +1124,19 @@ function updateIntroAttackers() {
 
     if (eveIntro) {
 
-        if (attackers?.eve?.enabled) {
-
-            eveIntro.classList.remove(
-                "hidden"
-            );
-
-        } else {
-
-            eveIntro.classList.add(
-                "hidden"
-            );
-        }
+        eveIntro.classList.toggle(
+            "hidden",
+            !attackers?.eve?.enabled
+        );
     }
 
 
     if (malloryIntro) {
 
-        if (
-            attackers?.mallory?.enabled
-        ) {
-
-            malloryIntro.classList.remove(
-                "hidden"
-            );
-
-        } else {
-
-            malloryIntro.classList.add(
-                "hidden"
-            );
-        }
+        malloryIntro.classList.toggle(
+            "hidden",
+            !attackers?.mallory?.enabled
+        );
     }
 }
 
@@ -1272,90 +1174,26 @@ function initializeSimulation() {
 
 function startSimulation() {
 
-    const simulation =
-        document.getElementById(
-            "simulation"
-        );
-
-
-    const simulationArea =
-        document.getElementById(
-            "simulationArea"
-        );
-
-
-    const result =
-        document.getElementById(
-            "result"
-        );
-
-
-    const resultMessage =
-        document.getElementById(
-            "resultMessage"
-        );
-
-
-    if (simulation) {
-
-        simulation.classList.remove(
-            "hidden"
-        );
-    }
-
-
-    if (simulationArea) {
-
-        simulationArea.textContent =
-            "シミュレーションを実行しています……";
-    }
-
-
-    if (result) {
-
-        result.classList.add(
-            "hidden"
-        );
-    }
-
-
     /*
-     * 現段階ではエディタ動作確認用。
+     * 現段階ではログや結果画面は出さない。
      *
-     * 今後ここに、
-     * Eve / Mallory の攻撃処理、
-     * 通信要件の判定、
-     * 突破演出、
-     * S / A / B / C 評価
-     * を実装する。
+     * ここは今後、
+     *
+     * Alice
+     *   ↓
+     * 通信経路
+     *   ↓
+     * Eve / Mallory
+     *   ↓
+     * Bob
+     *
+     * という実際の通信シミュレーション
+     * をキャンバス上で動かす場所にする。
      */
 
-    setTimeout(
-        () => {
-
-            if (simulationArea) {
-
-                simulationArea.textContent =
-                    "通信のシミュレーションが完了しました。";
-            }
-
-
-            if (result) {
-
-                result.classList.remove(
-                    "hidden"
-                );
-            }
-
-
-            if (resultMessage) {
-
-                resultMessage.textContent =
-                    "現在は通信設計エディタの動作確認用です。";
-            }
-
-        },
-        500
+    console.log(
+        "Simulation:",
+        communicationBlocks
     );
 }
 
