@@ -13,12 +13,17 @@ document.addEventListener("DOMContentLoaded", async () => {
    ======================================== */
 
 async function initializeSimulator() {
-    const stageNumber = getStageNumber();
+    const stageId = getStageId();
 
-    const stage = await loadStage(stageNumber);
+    if (!stageId) {
+        handleStageError();
+        return;
+    }
+
+    const stage = await loadStage(stageId);
 
     if (!stage) {
-        showLoadError();
+        handleStageError();
         return;
     }
 
@@ -28,24 +33,13 @@ async function initializeSimulator() {
 
 
 /* ========================================
-   URLからステージ番号を取得
+   URLからステージIDを取得
    ======================================== */
 
-function getStageNumber() {
+function getStageId() {
     const params = new URLSearchParams(window.location.search);
-    const stage = params.get("stage");
 
-    if (!stage) {
-        return 1;
-    }
-
-    const stageNumber = Number(stage);
-
-    if (!Number.isInteger(stageNumber) || stageNumber < 1) {
-        return 1;
-    }
-
-    return stageNumber;
+    return params.get("stage");
 }
 
 
@@ -53,30 +47,37 @@ function getStageNumber() {
    ステージデータ読み込み
    ======================================== */
 
-async function loadStage(stageNumber) {
-    /*
-     * Stage 1のみ、現在は動作確認用のtest.jsonを使用。
-     * 本番実装時にはstage01.jsonへ変更する。
-     */
+async function loadStage(stageId) {
+    let path;
 
-    const path =
-        stageNumber === 1
-            ? "stages/test.json"
-            : `stages/stage${String(stageNumber).padStart(2, "0")}.json`;
+    /*
+     * testは動作確認専用。
+     */
+    if (stageId === "test") {
+        path = "stages/test.json";
+    } else {
+        /*
+         * stage=01
+         * ↓
+         * stages/stage01.json
+         */
+        path = `stages/stage${stageId}.json`;
+    }
 
     try {
         const response = await fetch(path);
 
         if (!response.ok) {
-            throw new Error(
-                `ステージデータの読み込みに失敗しました: ${response.status}`
-            );
+            return null;
         }
 
-        return await response.json();
+        const stage = await response.json();
+
+        return stage;
 
     } catch (error) {
         console.error("Stage Load Error:", error);
+
         return null;
     }
 }
@@ -296,23 +297,11 @@ function startSimulation() {
 
 
 /* ========================================
-   ステージ読み込みエラー
+   ステージエラー
    ======================================== */
 
-function showLoadError() {
-    const stageTitle =
-        document.getElementById("stageTitle");
+function handleStageError() {
+    alert("そのステージは存在しません。");
 
-    const stageDescription =
-        document.getElementById("stageDescription");
-
-    if (stageTitle) {
-        stageTitle.textContent =
-            "ステージを読み込めませんでした";
-    }
-
-    if (stageDescription) {
-        stageDescription.textContent =
-            "ステージデータの読み込みに失敗しました。";
-    }
+    window.location.href = "index.html";
 }
