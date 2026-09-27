@@ -1,0 +1,42 @@
+{
+    "id": "test",
+    "title": "Test Stage",
+    "description": "CRYPTAの基本的な動作を確認するためのテストステージです。",
+
+    "objective": {
+        "final": "AliceとBobの通信を安全に設計する。",
+        "A": "通信内容をEveから見られないようにする。",
+        "B": "通信内容を保護しながら、必要最小限の構成にする。"
+    },
+
+    "attacker": {
+        "eve": {
+            "enabled": true,
+            "name": "Eve",
+            "description": "通信を盗聴する攻撃者です。"
+        },
+        "mallory": {
+            "enabled": false,
+            "name": "Mallory",
+            "description": "通信を妨害・改ざんする攻撃者です。"
+        }
+    },
+
+    "components": [
+        {
+            "id": "plaintext",
+            "name": "平文",
+            "description": "そのままのデータを送信します。"
+        },
+        {
+            "id": "caesar",
+            "name": "暗号化",
+            "description": "通信内容を暗号化します。"
+        }
+    ],
+
+    "communication": {
+        "available": true,
+        "blocks": []
+    }
+}
