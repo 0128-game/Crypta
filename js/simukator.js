@@ -48,21 +48,7 @@ function getStageId() {
    ======================================== */
 
 async function loadStage(stageId) {
-    let path;
-
-    /*
-     * testは動作確認専用。
-     */
-    if (stageId === "test") {
-        path = "stages/test.json";
-    } else {
-        /*
-         * stage=01
-         * ↓
-         * stages/stage01.json
-         */
-        path = `stages/stage${stageId}.json`;
-    }
+    const path = `stages/${stageId}.json`;
 
     try {
         const response = await fetch(path);
@@ -71,9 +57,7 @@ async function loadStage(stageId) {
             return null;
         }
 
-        const stage = await response.json();
-
-        return stage;
+        return await response.json();
 
     } catch (error) {
         console.error("Stage Load Error:", error);
@@ -81,7 +65,6 @@ async function loadStage(stageId) {
         return null;
     }
 }
-
 
 /* ========================================
    ステージ表示
