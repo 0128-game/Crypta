@@ -1,24 +1,45 @@
 /* ========================================
    CRYPTA - simulator.js
-   大型通信設計エディタ
+   自由配置型通信設計エディタ
    ======================================== */
 
 let currentStage = null;
+
+/*
+ * 通信に使用されているコンポーネント
+ */
 let communicationBlocks = [];
+
+/*
+ * キャンバス上に存在するオブジェクト
+ *
+ * {
+ *   id,
+ *   type,
+ *   x,
+ *   y,
+ *   componentId
+ * }
+ */
+let editorObjects = [];
 
 
 /* ========================================
    初期化
    ======================================== */
 
-document.addEventListener("DOMContentLoaded", async () => {
-    await initializeSimulator();
-});
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
+        await initializeSimulator();
+    }
+);
 
 
 async function initializeSimulator() {
 
-    const stageId = getStageId();
+    const stageId =
+        getStageId();
 
     if (!stageId) {
         handleStageError();
@@ -29,14 +50,14 @@ async function initializeSimulator() {
     const stage =
         await loadStage(stageId);
 
-
     if (!stage) {
         handleStageError();
         return;
     }
 
 
-    currentStage = stage;
+    currentStage =
+        stage;
 
 
     renderStage(stage);
@@ -49,7 +70,7 @@ async function initializeSimulator() {
 
     initializeCharacterIntro();
 
-    initializeCommunicationEditor();
+    initializeEditor();
 
     initializeSimulation();
 
@@ -58,7 +79,7 @@ async function initializeSimulator() {
 
 
 /* ========================================
-   URLからステージID取得
+   ステージ
    ======================================== */
 
 function getStageId() {
@@ -71,10 +92,6 @@ function getStageId() {
     return params.get("stage");
 }
 
-
-/* ========================================
-   ステージ読み込み
-   ======================================== */
 
 async function loadStage(stageId) {
 
@@ -104,10 +121,6 @@ async function loadStage(stageId) {
 }
 
 
-/* ========================================
-   ステージ表示
-   ======================================== */
-
 function renderStage(stage) {
 
     const stageTitle =
@@ -115,24 +128,11 @@ function renderStage(stage) {
             "stageTitle"
         );
 
-
     if (stageTitle) {
 
         stageTitle.textContent =
-            stage.title ?? "Stage";
-    }
-
-
-    const stageDescription =
-        document.getElementById(
-            "stageDescription"
-        );
-
-
-    if (stageDescription) {
-
-        stageDescription.textContent =
-            stage.description ?? "";
+            stage.title ??
+            "Stage";
     }
 }
 
@@ -143,45 +143,48 @@ function renderStage(stage) {
 
 function loadInitialCommunication(stage) {
 
+    communicationBlocks = [];
+
+
     if (
-        stage.communication &&
-        Array.isArray(
+        !stage.communication ||
+        !Array.isArray(
             stage.communication.blocks
         )
     ) {
-
-        communicationBlocks =
-            stage.communication.blocks.map(
-                (block, index) => {
-
-                    return {
-
-                        id:
-                            block.id ??
-                            `initial-${index}`,
-
-                        componentId:
-                            block.componentId ??
-                            block.id,
-
-                        name:
-                            block.name ?? "",
-
-                        description:
-                            block.description ?? ""
-                    };
-                }
-            );
-
-    } else {
-
-        communicationBlocks = [];
+        return;
     }
+
+
+    communicationBlocks =
+        stage.communication.blocks.map(
+            (block, index) => {
+
+                return {
+
+                    id:
+                        block.id ??
+                        `initial-${index}`,
+
+                    componentId:
+                        block.componentId ??
+                        block.id,
+
+                    name:
+                        block.name ??
+                        "",
+
+                    description:
+                        block.description ??
+                        ""
+                };
+            }
+        );
 }
 
 
 /* ========================================
-   攻撃者表示
+   攻撃者
    ======================================== */
 
 function renderAttackers(attackers) {
@@ -191,22 +194,21 @@ function renderAttackers(attackers) {
             "attackers"
         );
 
-
     const eveNode =
-        document.getElementById("eve");
-
+        document.getElementById(
+            "eve"
+        );
 
     const malloryNode =
-        document.getElementById("mallory");
+        document.getElementById(
+            "mallory"
+        );
 
 
     if (attackerContainer) {
-
         attackerContainer.innerHTML = "";
     }
 
-
-    /* ---------- Eve ---------- */
 
     const eve =
         attackers?.eve;
@@ -221,7 +223,6 @@ function renderAttackers(attackers) {
             );
         }
 
-
         renderAttackerCard(eve);
 
     } else {
@@ -234,8 +235,6 @@ function renderAttackers(attackers) {
         }
     }
 
-
-    /* ---------- Mallory ---------- */
 
     const mallory =
         attackers?.mallory;
@@ -250,8 +249,9 @@ function renderAttackers(attackers) {
             );
         }
 
-
-        renderAttackerCard(mallory);
+        renderAttackerCard(
+            mallory
+        );
 
     } else {
 
@@ -265,17 +265,14 @@ function renderAttackers(attackers) {
 }
 
 
-/* ========================================
-   攻撃者カード
-   ======================================== */
-
-function renderAttackerCard(attacker) {
+function renderAttackerCard(
+    attacker
+) {
 
     const container =
         document.getElementById(
             "attackers"
         );
-
 
     if (!container) {
         return;
@@ -287,7 +284,6 @@ function renderAttackerCard(attacker) {
             "div"
         );
 
-
     card.className =
         "attacker";
 
@@ -297,9 +293,9 @@ function renderAttackerCard(attacker) {
             "h3"
         );
 
-
     title.textContent =
-        attacker.name ?? "攻撃者";
+        attacker.name ??
+        "攻撃者";
 
 
     const description =
@@ -307,30 +303,35 @@ function renderAttackerCard(attacker) {
             "p"
         );
 
-
     description.textContent =
-        attacker.description ?? "";
+        attacker.description ??
+        "";
 
 
     card.appendChild(title);
 
-    card.appendChild(description);
+    card.appendChild(
+        description
+    );
 
-    container.appendChild(card);
+    container.appendChild(
+        card
+    );
 }
 
 
 /* ========================================
-   コンポーネント表示
+   コンポーネント一覧
    ======================================== */
 
-function renderComponents(components) {
+function renderComponents(
+    components
+) {
 
     const container =
         document.getElementById(
             "componentList"
         );
-
 
     if (!container) {
         return;
@@ -340,7 +341,9 @@ function renderComponents(components) {
     container.innerHTML = "";
 
 
-    if (!Array.isArray(components)) {
+    if (!Array.isArray(
+        components
+    )) {
         return;
     }
 
@@ -362,7 +365,12 @@ function renderComponents(components) {
                 component.id;
 
 
-            element.draggable = true;
+            /*
+             * HTML5 Drag & Drop
+             */
+
+            element.draggable =
+                true;
 
 
             const title =
@@ -370,27 +378,27 @@ function renderComponents(components) {
                     "strong"
                 );
 
-
             title.textContent =
                 component.name ??
                 component.id;
 
 
-            const description =
-                document.createElement(
-                    "p"
-                );
+            element.appendChild(
+                title
+            );
 
 
-            description.textContent =
-                component.description ??
-                "";
+            if (
+                component.description
+            ) {
 
+                const description =
+                    document.createElement(
+                        "p"
+                    );
 
-            element.appendChild(title);
-
-
-            if (component.description) {
+                description.textContent =
+                    component.description;
 
                 element.appendChild(
                     description
@@ -398,9 +406,16 @@ function renderComponents(components) {
             }
 
 
+            /*
+             * ドラッグ開始
+             */
+
             element.addEventListener(
                 "dragstart",
                 (event) => {
+
+                    event.dataTransfer.effectAllowed =
+                        "copy";
 
                     event.dataTransfer.setData(
                         "application/crypta-component",
@@ -408,8 +423,15 @@ function renderComponents(components) {
                     );
 
 
-                    event.dataTransfer.effectAllowed =
-                        "copy";
+                    /*
+                     * Firefox等で
+                     * ドラッグ対象を確実にする
+                     */
+
+                    event.dataTransfer.setData(
+                        "text/plain",
+                        component.id
+                    );
 
 
                     element.classList.add(
@@ -418,6 +440,10 @@ function renderComponents(components) {
                 }
             );
 
+
+            /*
+             * ドラッグ終了
+             */
 
             element.addEventListener(
                 "dragend",
@@ -430,96 +456,123 @@ function renderComponents(components) {
             );
 
 
-            container.appendChild(element);
+            container.appendChild(
+                element
+            );
         }
     );
 }
 
 
 /* ========================================
-   通信エディタ
+   エディタ初期化
    ======================================== */
 
-function initializeCommunicationEditor() {
+function initializeEditor() {
 
-    const path =
+    const canvas =
         document.getElementById(
-            "communicationPath"
+            "communicationCanvas"
         );
 
 
-    if (!path) {
+    if (!canvas) {
         return;
     }
 
 
-    /* ---------- ドラッグオーバー ---------- */
+    /*
+     * ======================================
+     * キャンバスへのドラッグ
+     * ======================================
+     */
 
-    path.addEventListener(
+    canvas.addEventListener(
         "dragover",
         (event) => {
+
+            /*
+             * これがないとdropイベントが
+             * 発生しない。
+             */
 
             event.preventDefault();
 
 
-            const componentId =
-                event.dataTransfer.getData(
-                    "application/crypta-component"
-                );
+            event.dataTransfer.dropEffect =
+                "copy";
 
 
-            if (componentId) {
-
-                event.dataTransfer.dropEffect =
-                    "copy";
-
-            } else {
-
-                event.dataTransfer.dropEffect =
-                    "move";
-            }
-
-
-            path.classList.add(
-                "drag-over"
+            canvas.classList.add(
+                "canvas-drag-over"
             );
         }
     );
 
 
-    /* ---------- ドラッグ離脱 ---------- */
-
-    path.addEventListener(
-        "dragleave",
+    canvas.addEventListener(
+        "dragenter",
         (event) => {
 
-            if (
-                !path.contains(
-                    event.relatedTarget
-                )
-            ) {
+            event.preventDefault();
 
-                path.classList.remove(
-                    "drag-over"
-                );
-            }
+            canvas.classList.add(
+                "canvas-drag-over"
+            );
         }
     );
 
 
-    /* ---------- ドロップ ---------- */
+    canvas.addEventListener(
+        "dragleave",
+        (event) => {
 
-    path.addEventListener(
+            /*
+             * 子要素への移動では
+             * dragleave扱いにしない。
+             */
+
+            if (
+                event.relatedTarget &&
+                canvas.contains(
+                    event.relatedTarget
+                )
+            ) {
+                return;
+            }
+
+
+            canvas.classList.remove(
+                "canvas-drag-over"
+            );
+        }
+    );
+
+
+    /*
+     * ======================================
+     * ドロップ
+     * ======================================
+     */
+
+    canvas.addEventListener(
         "drop",
         (event) => {
 
             event.preventDefault();
 
+            event.stopPropagation();
 
-            path.classList.remove(
-                "drag-over"
+
+            canvas.classList.remove(
+                "canvas-drag-over"
             );
 
+
+            /*
+             * コンポーネント一覧から
+             * ドロップされた場合
+             */
 
             const componentId =
                 event.dataTransfer.getData(
@@ -529,32 +582,59 @@ function initializeCommunicationEditor() {
 
             if (componentId) {
 
-                addCommunicationBlock(
-                    componentId
+                const position =
+                    getCanvasPosition(
+                        event,
+                        canvas
+                    );
+
+
+                addComponentToCanvas(
+                    componentId,
+                    position.x,
+                    position.y
                 );
+
 
                 return;
             }
 
 
-            const blockId =
+            /*
+             * 既に置かれている
+             * オブジェクトを移動した場合
+             */
+
+            const objectId =
                 event.dataTransfer.getData(
-                    "application/crypta-block"
+                    "application/crypta-object"
                 );
 
 
-            if (blockId) {
+            if (objectId) {
 
-                moveCommunicationBlock(
-                    blockId,
-                    event.clientX
+                const position =
+                    getCanvasPosition(
+                        event,
+                        canvas
+                    );
+
+
+                moveObjectToPosition(
+                    objectId,
+                    position.x,
+                    position.y
                 );
             }
         }
     );
 
 
-    /* ---------- クリア ---------- */
+    /*
+     * ======================================
+     * 通信クリア
+     * ======================================
+     */
 
     const clearButton =
         document.getElementById(
@@ -568,7 +648,15 @@ function initializeCommunicationEditor() {
             "click",
             () => {
 
-                communicationBlocks = [];
+                communicationBlocks =
+                    [];
+
+                editorObjects =
+                    editorObjects.filter(
+                        (object) =>
+                            object.type !==
+                            "component"
+                    );
 
                 updateCommunicationView();
             }
@@ -576,7 +664,11 @@ function initializeCommunicationEditor() {
     }
 
 
-    /* ---------- リセット ---------- */
+    /*
+     * ======================================
+     * 初期状態に戻す
+     * ======================================
+     */
 
     const resetButton =
         document.getElementById(
@@ -594,19 +686,57 @@ function initializeCommunicationEditor() {
                     currentStage
                 );
 
+                resetEditorObjects();
+
                 updateCommunicationView();
             }
         );
     }
+
+
+    /*
+     * キャラクターを
+     * ドラッグ可能にする
+     */
+
+    initializeCharacterDragging();
 }
 
 
 /* ========================================
-   コンポーネント追加
+   キャンバス座標
    ======================================== */
 
-function addCommunicationBlock(
-    componentId
+function getCanvasPosition(
+    event,
+    canvas
+) {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+
+    return {
+
+        x:
+            event.clientX -
+            rect.left,
+
+        y:
+            event.clientY -
+            rect.top
+    };
+}
+
+
+/* ========================================
+   コンポーネントを配置
+   ======================================== */
+
+function addComponentToCanvas(
+    componentId,
+    x,
+    y
 ) {
 
     if (!currentStage) {
@@ -626,7 +756,7 @@ function addCommunicationBlock(
     }
 
 
-    communicationBlocks.push({
+    const block = {
 
         id:
             createBlockId(),
@@ -641,6 +771,38 @@ function addCommunicationBlock(
         description:
             component.description ??
             ""
+    };
+
+
+    /*
+     * 通信構成に追加
+     */
+
+    communicationBlocks.push(
+        block
+    );
+
+
+    /*
+     * キャンバス上の位置を保存
+     */
+
+    editorObjects.push({
+
+        id:
+            block.id,
+
+        type:
+            "component",
+
+        x:
+            x,
+
+        y:
+            y,
+
+        componentId:
+            component.id
     });
 
 
@@ -649,96 +811,137 @@ function addCommunicationBlock(
 
 
 /* ========================================
-   ブロックID生成
-   ======================================== */
-
-function createBlockId() {
-
-    return (
-        "block-" +
-        Date.now() +
-        "-" +
-        Math.random()
-            .toString(36)
-            .slice(2)
-    );
-}
-
-
-/* ========================================
-   通信表示更新
+   通信ビュー更新
    ======================================== */
 
 function updateCommunicationView() {
 
-    const path =
+    const canvas =
         document.getElementById(
-            "communicationPath"
+            "communicationCanvas"
         );
 
 
-    if (!path) {
+    if (!canvas) {
         return;
     }
 
 
-    path.innerHTML = "";
+    /*
+     * 古いコンポーネントを削除
+     */
 
-
-    if (
-        communicationBlocks.length === 0
-    ) {
-
-        const placeholder =
-            document.createElement(
-                "div"
-            );
-
-
-        placeholder.id =
-            "communicationPlaceholder";
-
-
-        placeholder.className =
-            "communication-placeholder";
-
-
-        placeholder.textContent =
-            "コンポーネントをここに配置";
-
-
-        path.appendChild(
-            placeholder
+    canvas
+        .querySelectorAll(
+            ".communication-block"
+        )
+        .forEach(
+            (element) => {
+                element.remove();
+            }
         );
 
 
-        return;
-    }
-
+    /*
+     * JSONに初期通信がある場合、
+     * キャンバス上のオブジェクトを作る。
+     */
 
     communicationBlocks.forEach(
         (block, index) => {
 
-            const element =
-                createCommunicationElement(
-                    block,
-                    index
+            let object =
+                editorObjects.find(
+                    (item) =>
+                        item.id === block.id
                 );
 
 
-            path.appendChild(element);
+            if (!object) {
+
+                object = {
+
+                    id:
+                        block.id,
+
+                    type:
+                        "component",
+
+                    x:
+                        canvas.clientWidth *
+                        0.5 +
+                        index * 170,
+
+                    y:
+                        canvas.clientHeight *
+                        0.5,
+
+                    componentId:
+                        block.componentId
+                };
+
+
+                editorObjects.push(
+                    object
+                );
+            }
+        }
+    );
+
+
+    /*
+     * コンポーネントを描画
+     */
+
+    communicationBlocks.forEach(
+        (block) => {
+
+            const object =
+                editorObjects.find(
+                    (item) =>
+                        item.id === block.id
+                );
+
+
+            if (!object) {
+                return;
+            }
+
+
+            const element =
+                createCommunicationElement(
+                    block
+                );
+
+
+            element.style.left =
+                `${object.x}px`;
+
+
+            element.style.top =
+                `${object.y}px`;
+
+
+            canvas.appendChild(
+                element
+            );
+
+
+            initializeObjectDragging(
+                element,
+                object
+            );
         }
     );
 }
 
 
 /* ========================================
-   通信ブロック生成
+   コンポーネント要素
    ======================================== */
 
 function createCommunicationElement(
-    block,
-    index
+    block
 ) {
 
     const element =
@@ -755,9 +958,6 @@ function createCommunicationElement(
         block.id;
 
 
-    element.draggable = true;
-
-
     const title =
         document.createElement(
             "strong"
@@ -768,7 +968,9 @@ function createCommunicationElement(
         block.name;
 
 
-    element.appendChild(title);
+    element.appendChild(
+        title
+    );
 
 
     if (block.description) {
@@ -789,18 +991,58 @@ function createCommunicationElement(
     }
 
 
+    /*
+     * ダブルクリックで削除
+     */
+
+    element.addEventListener(
+        "dblclick",
+        (event) => {
+
+            event.preventDefault();
+
+            removeCommunicationBlock(
+                block.id
+            );
+        }
+    );
+
+
+    return element;
+}
+
+
+/* ========================================
+   配置済みオブジェクトの移動
+   ======================================== */
+
+function initializeObjectDragging(
+    element,
+    object
+) {
+
+    element.draggable =
+        true;
+
+
     element.addEventListener(
         "dragstart",
         (event) => {
 
+            event.dataTransfer.effectAllowed =
+                "move";
+
+
             event.dataTransfer.setData(
-                "application/crypta-block",
-                block.id
+                "application/crypta-object",
+                object.id
             );
 
 
-            event.dataTransfer.effectAllowed =
-                "move";
+            event.dataTransfer.setData(
+                "text/plain",
+                object.id
+            );
 
 
             element.classList.add(
@@ -819,25 +1061,212 @@ function createCommunicationElement(
             );
         }
     );
-
-
-    element.addEventListener(
-        "dblclick",
-        () => {
-
-            removeCommunicationBlock(
-                block.id
-            );
-        }
-    );
-
-
-    return element;
 }
 
 
 /* ========================================
-   通信ブロック削除
+   オブジェクト移動
+   ======================================== */
+
+function moveObjectToPosition(
+    objectId,
+    x,
+    y
+) {
+
+    const object =
+        editorObjects.find(
+            (item) =>
+                item.id === objectId
+        );
+
+
+    if (!object) {
+        return;
+    }
+
+
+    object.x =
+        clamp(
+            x,
+            10,
+            getCanvasWidth() - 10
+        );
+
+
+    object.y =
+        clamp(
+            y,
+            10,
+            getCanvasHeight() - 10
+        );
+
+
+    updateCommunicationView();
+}
+
+
+/* ========================================
+   キャンバスサイズ
+   ======================================== */
+
+function getCanvasWidth() {
+
+    const canvas =
+        document.getElementById(
+            "communicationCanvas"
+        );
+
+
+    if (!canvas) {
+        return 0;
+    }
+
+
+    return canvas.clientWidth;
+}
+
+
+function getCanvasHeight() {
+
+    const canvas =
+        document.getElementById(
+            "communicationCanvas"
+        );
+
+
+    if (!canvas) {
+        return 0;
+    }
+
+
+    return canvas.clientHeight;
+}
+
+
+function clamp(
+    value,
+    min,
+    max
+) {
+
+    return Math.min(
+        Math.max(
+            value,
+            min
+        ),
+        max
+    );
+}
+
+
+/* ========================================
+   キャラクター移動
+   ======================================== */
+
+function initializeCharacterDragging() {
+
+    const characters =
+        document.querySelectorAll(
+            ".character-node, .attacker-node"
+        );
+
+
+    characters.forEach(
+        (character) => {
+
+            character.draggable =
+                true;
+
+
+            character.addEventListener(
+                "dragstart",
+                (event) => {
+
+                    event.dataTransfer.effectAllowed =
+                        "move";
+
+
+                    event.dataTransfer.setData(
+                        "application/crypta-object",
+                        character.id
+                    );
+
+
+                    event.dataTransfer.setData(
+                        "text/plain",
+                        character.id
+                    );
+
+
+                    character.classList.add(
+                        "dragging"
+                    );
+                }
+            );
+
+
+            character.addEventListener(
+                "dragend",
+                () => {
+
+                    character.classList.remove(
+                        "dragging"
+                    );
+                }
+            );
+        }
+    );
+}
+
+
+/* ========================================
+   オブジェクト移動
+   ======================================== */
+
+function moveCharacter(
+    id,
+    x,
+    y
+) {
+
+    const character =
+        document.getElementById(id);
+
+
+    if (!character) {
+        return;
+    }
+
+
+    character.style.left =
+        `${x}px`;
+
+
+    character.style.top =
+        `${y}px`;
+}
+
+
+/* ========================================
+   オブジェクトID
+   ======================================== */
+
+function createBlockId() {
+
+    return (
+        "block-" +
+        Date.now() +
+        "-" +
+        Math.random()
+            .toString(36)
+            .slice(2)
+    );
+}
+
+
+/* ========================================
+   コンポーネント削除
    ======================================== */
 
 function removeCommunicationBlock(
@@ -851,106 +1280,72 @@ function removeCommunicationBlock(
         );
 
 
+    editorObjects =
+        editorObjects.filter(
+            (object) =>
+                object.id !== blockId
+        );
+
+
     updateCommunicationView();
 }
 
 
 /* ========================================
-   通信ブロック並べ替え
+   初期状態へ戻す
    ======================================== */
 
-function moveCommunicationBlock(
-    blockId,
-    mouseX
-) {
+function resetEditorObjects() {
 
-    const path =
+    editorObjects =
+        [];
+
+
+    const canvas =
         document.getElementById(
-            "communicationPath"
+            "communicationCanvas"
         );
 
 
-    if (!path) {
+    if (!canvas) {
         return;
     }
 
 
-    const draggedIndex =
-        communicationBlocks.findIndex(
-            (block) =>
-                block.id === blockId
-        );
+    const centerX =
+        canvas.clientWidth / 2;
 
 
-    if (draggedIndex === -1) {
-        return;
-    }
+    const centerY =
+        canvas.clientHeight / 2;
 
 
-    const draggedBlock =
-        communicationBlocks[
-            draggedIndex
-        ];
+    communicationBlocks.forEach(
+        (block, index) => {
 
+            editorObjects.push({
 
-    communicationBlocks.splice(
-        draggedIndex,
-        1
-    );
+                id:
+                    block.id,
 
+                type:
+                    "component",
 
-    const elements =
-        Array.from(
-            path.querySelectorAll(
-                ".communication-block"
-            )
-        );
+                x:
+                    centerX +
+                    (index -
+                        (communicationBlocks.length - 1) /
+                        2
+                    ) *
+                    180,
 
+                y:
+                    centerY,
 
-    let newIndex =
-        communicationBlocks.length;
-
-
-    for (
-        let index = 0;
-        index < elements.length;
-        index++
-    ) {
-
-        const element =
-            elements[index];
-
-
-        const rect =
-            element.getBoundingClientRect();
-
-
-        if (
-            mouseX <
-            rect.left +
-            rect.width / 2
-        ) {
-
-            const targetId =
-                element.dataset.blockId;
-
-
-            newIndex =
-                communicationBlocks.findIndex(
-                    (block) =>
-                        block.id === targetId
-                );
-
-
-            break;
+                componentId:
+                    block.componentId
+            });
         }
-    }
-
-
-    communicationBlocks.splice(
-        newIndex,
-        0,
-        draggedBlock
     );
 
 
@@ -959,7 +1354,7 @@ function moveCommunicationBlock(
 
 
 /* ========================================
-   初回フローティング
+   キャラクター説明
    ======================================== */
 
 function initializeCharacterIntro() {
@@ -987,11 +1382,6 @@ function initializeCharacterIntro() {
     }
 
 
-    /*
-     * ステージを開いたら必ず表示する。
-     * sessionStorageは使用しない。
-     */
-
     renderIntroObjectives();
 
     updateIntroAttackers();
@@ -1002,14 +1392,13 @@ function initializeCharacterIntro() {
     );
 
 
-    /* ---------- 閉じる ---------- */
+    const closeIntro =
+        () => {
 
-    const closeIntro = () => {
-
-        intro.classList.add(
-            "hidden"
-        );
-    };
+            intro.classList.add(
+                "hidden"
+            );
+        };
 
 
     if (closeButton) {
@@ -1046,7 +1435,7 @@ function initializeCharacterIntro() {
 
 
 /* ========================================
-   フローティング目標
+   目標
    ======================================== */
 
 function renderIntroObjectives() {
@@ -1081,27 +1470,30 @@ function renderIntroObjectives() {
     if (finalText) {
 
         finalText.textContent =
-            objective.final ?? "";
+            objective.final ??
+            "";
     }
 
 
     if (objectiveAText) {
 
         objectiveAText.textContent =
-            objective.A ?? "";
+            objective.A ??
+            "";
     }
 
 
     if (objectiveBText) {
 
         objectiveBText.textContent =
-            objective.B ?? "";
+            objective.B ??
+            "";
     }
 }
 
 
 /* ========================================
-   フローティング内攻撃者表示
+   攻撃者の説明表示
    ======================================== */
 
 function updateIntroAttackers() {
@@ -1168,38 +1560,26 @@ function initializeSimulation() {
 }
 
 
-/* ========================================
-   シミュレーション開始
-   ======================================== */
-
 function startSimulation() {
 
     /*
-     * 現段階ではログや結果画面は出さない。
-     *
-     * ここは今後、
+     * 今後ここで
      *
      * Alice
-     *   ↓
-     * 通信経路
-     *   ↓
+     * ↓
+     * 配置された通信構成
+     * ↓
      * Eve / Mallory
-     *   ↓
+     * ↓
      * Bob
      *
-     * という実際の通信シミュレーション
-     * をキャンバス上で動かす場所にする。
+     * のアニメーションを行う。
      */
-
-    console.log(
-        "Simulation:",
-        communicationBlocks
-    );
 }
 
 
 /* ========================================
-   ステージエラー
+   エラー
    ======================================== */
 
 function handleStageError() {
