@@ -1,23 +1,26 @@
 {
   "id": "test",
-  "title": "Caesarで盗聴を防げ",
+  "title": "はじめての暗号化",
   "goal": "AliceからBobへ、Eveに読まれずにメッセージを送る",
   "attacker": {
     "type": "eve",
     "capabilities": {
-      "compute": "human",
+      "compute": "observer",
       "observedMessages": 1,
       "knownInfo": [],
       "observationScope": "channel"
     }
   },
   "components": ["encrypt", "decrypt", "key"],
-  "algorithms": ["caesar"],
+  "algorithms": ["caesar", "aes"],
   "objectives": {
     "A": { "require": ["confidentiality"] },
-    "B": { "require": ["confidentiality"], "attackerOverride": { "compute": "computer" } }
+    "B": {
+      "require": ["confidentiality"],
+      "attackerOverride": { "compute": "human" }
+    }
   },
   "rating": {
-    "minimalComponents": ["encrypt", "decrypt"]
+    "minimalComponents": ["encrypt", "decrypt", "key"]
   }
 }
