@@ -1,1132 +1,546 @@
-/* ========================================
-   CRYPTA - simulator.css
-   自由配置型通信設計エディタ
-   ======================================== */
+/* ==========================================================
+   CRYPTA simulator.css
+   simulator.html 専用（トークンは common.css のものを使う）
+   ========================================================== */
 
-
-/* ========================================
-   基本
-   ======================================== */
-
-body {
-    margin: 0;
-    min-width: 320px;
-
-    overflow: hidden;
-
-    background-color: #e5e7eb;
+.page-simulator .site-header,
+.page-simulator .sim,
+.page-simulator .site-footer {
+  max-width: 1100px;
 }
 
+.page-simulator .sim {
+  margin: 0 auto;
+  padding: 1rem 1.25rem 0;
+}
 
-/* ========================================
-   ヘッダー
-   ======================================== */
+.page-simulator h1 {
+  font-size: clamp(1.6rem, 4.5vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.4;
+}
 
-#editorHeader {
-    position: relative;
-    z-index: 100;
+.page-simulator h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
 
+.header-link {
+  padding: 0.25rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  text-decoration: none;
+  background: var(--primary-soft);
+  border-radius: var(--r-pill);
+}
+.header-link:hover {
+  background: #d9deff;
+}
+
+.sim-status {
+  padding: 1rem 1.25rem;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border-radius: var(--r-md);
+}
+.sim-status[hidden] { display: none; }
+.sim-status.is-error {
+  color: #a33145;
+  background: var(--mallory-soft);
+}
+
+.sim-intro p {
+  margin-top: 0.4rem;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+/* ---------- ステージの条件 ---------- */
+.brief {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--gap);
+  margin-top: 1.5rem;
+}
+
+.brief-card {
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-soft);
+}
+.brief-card h2 {
+  margin-bottom: 0.75rem;
+}
+
+.brief-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.caps {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+.caps dt {
+  color: var(--ink-soft);
+}
+.caps dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.objectives {
+  display: grid;
+  gap: 0.9rem;
+}
+.objective {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.objective-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  font-weight: 800;
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+  border-radius: 50%;
+}
+.objective-title {
+  font-weight: 700;
+  line-height: 1.6;
+}
+.objective-note {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- ワークスペース ---------- */
+.workspace {
+  margin-top: 2rem;
+  scroll-margin-top: 1rem;
+}
+
+.workspace-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.workspace-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.workspace-actions .button {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+.workspace-actions .button-secondary {
+  padding-top: calc(0.6rem - 2px);
+  padding-bottom: calc(0.6rem - 2px);
+}
+
+.workspace-hint {
+  margin: 0.6rem 0 0.9rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.canvas-scroll {
+  overflow: auto;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.board {
+  position: relative;
+  width: 100%;
+  min-width: 820px;
+  height: 440px;
+  background-image: radial-gradient(var(--line) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+/* ---------- 線 ---------- */
+.edges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+.edge-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.edge-data .edge-line { stroke: var(--primary); }
+.edge-key  .edge-line { stroke: #e0a500; }
+.edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 18;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+.edge:hover .edge-line {
+  stroke: var(--mallory);
+}
+.edge-temp {
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 3;
+  stroke-dasharray: 2 8;
+  stroke-linecap: round;
+}
+
+/* ---------- ノード ---------- */
+.node {
+  --node-pad: 0.75rem;
+  --node-border: 2px;
+  --port-size: 18px;
+  position: absolute;
+  z-index: 2;
+  width: 152px;
+  padding: 0.6rem var(--node-pad) 0.75rem;
+  background: var(--surface);
+  border: var(--node-border) solid var(--ink-soft);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-soft);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+.node.is-static {
+  cursor: default;
+  touch-action: auto;
+}
+.node.is-dragging {
+  z-index: 5;
+  cursor: grabbing;
+  box-shadow: var(--shadow-lift);
+}
+
+.node-alice,
+.node-bob      { border-color: var(--primary-deep); background: var(--primary-soft); }
+.node-channel  { border-color: #aab3cf; border-style: dashed; background: #f1f3fa; }
+.node-encrypt  { border-color: var(--primary); background: #f3f4ff; }
+.node-decrypt  { border-color: var(--ok); background: #effaf4; }
+.node-key      { border-color: #e0a500; background: #fff8e3; }
+
+.node-channel.is-breached {
+  border-color: var(--mallory);
+  border-style: solid;
+  background: var(--mallory-soft);
+}
+.node-channel.is-safe {
+  border-color: var(--ok);
+  border-style: solid;
+  background: var(--ok-soft);
+}
+
+.node-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+.node-title {
+  font-weight: 800;
+  line-height: 1.5;
+}
+.node-remove {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.node-remove:hover {
+  color: #fff;
+  background: var(--mallory);
+  border-color: var(--mallory);
+}
+
+.node-algo {
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.2rem 0.5rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--r-pill);
+}
+.node-algo-fixed {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--surface);
+  border-radius: var(--r-pill);
+}
+
+.node-attacker {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.node-attacker .badge {
+  margin-bottom: 0.15rem;
+}
+
+/* ---------- ポート ---------- */
+.port-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.port-out {
+  flex-direction: row-reverse;
+}
+
+.port {
+  flex: none;
+  width: var(--port-size);
+  height: var(--port-size);
+  padding: 0;
+  background: var(--surface);
+  border: 3px solid var(--primary);
+  border-radius: 50%;
+  cursor: crosshair;
+  touch-action: none;
+}
+/* 丸の中心がノードの縁に乗るように、外へはみ出させる */
+.port-in .port {
+  margin-left: calc(-1 * (var(--node-pad) + var(--node-border) + var(--port-size) / 2));
+}
+.port-out .port {
+  margin-right: calc(-1 * (var(--node-pad) + var(--node-border) + var(--port-size) / 2));
+}
+.port-type-key {
+  border-color: #e0a500;
+}
+.port:hover {
+  background: var(--primary-soft);
+}
+.port.is-target {
+  background: var(--sun);
+  box-shadow: 0 0 0 4px rgba(255, 201, 77, 0.45);
+}
+.port.is-pending {
+  background: var(--primary);
+}
+
+/* ---------- コンポーネント一覧 ---------- */
+.palette-section {
+  margin-top: 2rem;
+}
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+}
+.palette-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 9.5rem;
+  padding: 0.7rem 1.1rem;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: 0 4px 0 var(--line);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.palette-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--line);
+}
+.palette-item:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--line);
+}
+.palette-item strong { font-weight: 800; }
+.palette-item span {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.palette-encrypt { border-color: var(--primary); }
+.palette-decrypt { border-color: var(--ok); }
+.palette-key     { border-color: #e0a500; }
+
+.drag-ghost {
+  position: fixed;
+  z-index: 50;
+  padding: 0.5rem 1rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--primary);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-lift);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+/* ---------- 結果 ---------- */
+.result {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
+  scroll-margin-top: 1rem;
+}
+.result[hidden] { display: none; }
+.result:focus { outline: none; }
+
+.result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--r-md);
+}
+.result.is-broken .result-head     { background: var(--mallory-soft); }
+.result.is-safe .result-head       { background: var(--ok-soft); }
+.result.is-incomplete .result-head { background: var(--sun-soft); }
+
+.result-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.result-head .rating {
+  flex: none;
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.6rem;
+}
+
+.result-flow {
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--bg);
+  border-radius: var(--r-md);
+}
+
+.result-objectives {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--gap);
+  margin-top: 1rem;
+}
+.result-objective {
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+}
+.result-objective.is-met   { border-color: var(--ok); }
+.result-objective.is-unmet { border-color: var(--mallory); }
+
+.result-objective h3 {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.result-objective.is-met h3   { color: #1c8656; }
+.result-objective.is-unmet h3 { color: #c63d56; }
+
+.check-list {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+.check-item {
+  font-size: 0.9rem;
+}
+.check-item strong {
+  display: block;
+}
+.check-item p {
+  color: var(--ink-soft);
+}
+.check-item.is-met strong::before   { content: "✓ "; color: var(--ok); }
+.check-item.is-unmet strong::before { content: "✕ "; color: var(--mallory); }
+
+.result-note {
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #8a6200;
+  background: var(--sun-soft);
+  border-radius: var(--r-pill);
+  text-align: center;
+}
+
+.result-problems {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 480px) {
+  .workspace-actions {
     width: 100%;
-    height: 60px;
-
-    padding: 0 1rem;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    color: #ffffff;
-    background-color: #1f2937;
-
-    border-bottom: 1px solid #111827;
-}
-
-.editor-header-left {
-    display: flex;
-    align-items: center;
-
-    gap: 1rem;
-
-    min-width: 0;
-}
-
-.editor-header-left h1 {
-    margin: 0;
-
-    font-size: 1.4rem;
-    letter-spacing: 0.04em;
-}
-
-#stageHeader {
-    padding-left: 1rem;
-
-    border-left: 1px solid #4b5563;
-
-    min-width: 0;
-}
-
-#stageTitle {
-    display: block;
-
-    max-width: 300px;
-
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-
-    color: #d1d5db;
-
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.editor-header-right {
-    display: flex;
-    align-items: center;
-}
-
-#simulateButton {
-    min-height: 38px;
-
-    padding: 0.45rem 0.9rem;
-
-    color: #ffffff;
-    background-color: #2563eb;
-
-    border-color: #3b82f6;
-}
-
-#simulateButton:hover {
-    background-color: #1d4ed8;
-}
-
-
-/* ========================================
-   メインエディタ
-   ======================================== */
-
-#simulatorEditor {
-    width: 100vw;
-    height: calc(100vh - 60px);
-
-    margin: 0;
-    padding: 0;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-}
-
-
-/* ========================================
-   通信キャンバス
-   ======================================== */
-
-#communicationEditor {
-    position: relative;
-
+  }
+  .workspace-actions .button {
     flex: 1 1 auto;
-
-    min-width: 0;
-    min-height: 0;
-
-    margin: 0;
-    padding: 0;
-
-    background-color: #f8fafc;
-
-    border: 0;
-    border-radius: 0;
-
-    overflow: hidden;
-}
-
-
-/*
- * 自由配置キャンバス
- */
-
-#communicationCanvas {
-    position: relative;
-
-    width: 100%;
-    height: 100%;
-
-    margin: 0;
-    padding: 0;
-
-    overflow: hidden;
-
-    background-color: #ffffff;
-
-    /*
-     * Scratch風グリッド
-     */
-
-    background-image:
-        linear-gradient(
-            #e5e7eb 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            #e5e7eb 1px,
-            transparent 1px
-        );
-
-    background-size: 24px 24px;
-
-    cursor: default;
-
-    user-select: none;
-}
-
-
-/*
- * ドラッグ中のキャンバス
- */
-
-#communicationCanvas.canvas-drag-over {
-    background-color: #f8fbff;
-
-    box-shadow:
-        inset 0 0 0 4px #93c5fd;
-}
-
-
-/* ========================================
-   キャンバス中央の通信ライン
-   ======================================== */
-
-#communicationCanvas::before {
-    content: "";
-
-    position: absolute;
-
-    left: 5%;
-    right: 5%;
-
-    top: 50%;
-
-    height: 5px;
-
-    background-color: #bfdbfe;
-
-    border-radius: 999px;
-
-    transform: translateY(-50%);
-
-    pointer-events: none;
-}
-
-
-/*
- * 通信ラインの矢印
- */
-
-#communicationCanvas::after {
-    content: "→";
-
-    position: absolute;
-
-    top: 50%;
-    right: 4.5%;
-
-    transform:
-        translateY(-53%);
-
-    color: #60a5fa;
-
-    font-size: 2rem;
-    font-weight: 800;
-
-    pointer-events: none;
-}
-
-
-/* ========================================
-   Alice / Bob
-   ======================================== */
-
-.character-node {
-    position: absolute;
-
-    z-index: 20;
-
-    width: 130px;
-    min-height: 105px;
-
-    padding: 1rem;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    text-align: center;
-
-    background-color: #ffffff;
-
-    border: 3px solid #374151;
-    border-radius: 18px;
-
-    box-shadow:
-        0 5px 0 #d1d5db,
-        0 8px 18px rgba(0, 0, 0, 0.12);
-
-    cursor: grab;
-
-    user-select: none;
-
-    transform:
-        translate(-50%, -50%);
-
-    transition:
-        box-shadow 0.12s ease,
-        transform 0.12s ease;
-}
-
-.character-node:hover {
-    box-shadow:
-        0 7px 0 #d1d5db,
-        0 12px 22px rgba(0, 0, 0, 0.14);
-}
-
-.character-node:active,
-.character-node.dragging {
-    cursor: grabbing;
-
-    transform:
-        translate(-50%, -50%)
-        scale(1.03);
-
-    box-shadow:
-        0 2px 0 #d1d5db,
-        0 5px 12px rgba(0, 0, 0, 0.12);
-}
-
-.character-node-name {
-    font-size: 1.2rem;
-    font-weight: 800;
-}
-
-.character-node-role {
-    margin-top: 0.25rem;
-
-    color: #6b7280;
-
-    font-size: 0.8rem;
-}
-
-
-/*
- * 初期位置
- *
- * JS側で自由配置できるようにするため、
- * absolute配置だけをCSSで定義。
- */
-
-#alice {
-    left: 10%;
-    top: 50%;
-}
-
-#bob {
-    left: 90%;
-    top: 50%;
-}
-
-
-/* ========================================
-   攻撃者
-   ======================================== */
-
-.attacker-node {
-    position: absolute;
-
-    z-index: 30;
-
-    width: 125px;
-    min-height: 85px;
-
-    padding: 0.8rem;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    text-align: center;
-
-    background-color: #fff7ed;
-
-    border: 3px solid #f97316;
-    border-radius: 16px;
-
-    box-shadow:
-        0 5px 0 #fed7aa,
-        0 8px 16px rgba(0, 0, 0, 0.1);
-
-    cursor: grab;
-
-    user-select: none;
-
-    transform:
-        translate(-50%, -50%);
-}
-
-.attacker-node:hover {
-    box-shadow:
-        0 7px 0 #fed7aa,
-        0 12px 20px rgba(0, 0, 0, 0.12);
-}
-
-.attacker-node:active,
-.attacker-node.dragging {
-    cursor: grabbing;
-
-    transform:
-        translate(-50%, -50%)
-        scale(1.03);
-}
-
-.attacker-node-name {
-    font-size: 1.05rem;
-    font-weight: 800;
-}
-
-.attacker-node-role {
-    margin-top: 0.2rem;
-
-    color: #9a3412;
-
-    font-size: 0.75rem;
-}
-
-
-/*
- * Eve / Mallory 初期位置
- */
-
-#eve {
-    left: 50%;
-    top: 20%;
-}
-
-#mallory {
-    left: 50%;
-    top: 80%;
-}
-
-
-/* ========================================
-   通信コンポーネント
-   ======================================== */
-
-.communication-block {
-    position: absolute;
-
-    z-index: 40;
-
-    width: 150px;
-    min-height: 85px;
-
-    padding: 0.8rem 1rem;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    background-color: #ffffff;
-
-    border: 3px solid #2563eb;
-    border-radius: 14px;
-
-    box-shadow:
-        0 5px 0 #bfdbfe,
-        0 8px 16px rgba(0, 0, 0, 0.1);
-
-    cursor: grab;
-
-    user-select: none;
-
-    transform:
-        translate(-50%, -50%);
-
-    transition:
-        box-shadow 0.12s ease,
-        transform 0.12s ease;
-}
-
-.communication-block:hover {
-    box-shadow:
-        0 7px 0 #bfdbfe,
-        0 12px 20px rgba(0, 0, 0, 0.12);
-}
-
-.communication-block:active,
-.communication-block.dragging {
-    cursor: grabbing;
-
-    transform:
-        translate(-50%, -50%)
-        scale(1.03);
-
-    box-shadow:
-        0 2px 0 #bfdbfe,
-        0 5px 10px rgba(0, 0, 0, 0.1);
-}
-
-.communication-block strong {
-    font-size: 0.95rem;
-}
-
-.communication-block p {
-    margin: 0.3rem 0 0;
-
-    color: #64748b;
-
-    font-size: 0.75rem;
-    line-height: 1.4;
-}
-
-
-/* ========================================
-   コンポーネント配置エリア
-   ======================================== */
-
-#componentEditor {
-    position: relative;
-
-    z-index: 90;
-
-    flex: 0 0 220px;
-
-    width: 100%;
-
-    margin: 0;
-    padding: 0.75rem 1rem;
-
-    background-color: #e5e7eb;
-
-    border: 0;
-    border-top: 2px solid #cbd5e1;
-    border-radius: 0;
-
-    overflow: hidden;
-}
-
-
-/*
- * コンポーネント置き場のタイトル
- */
-
-.component-editor-title {
-    height: 35px;
-
-    display: flex;
-    align-items: center;
-
-    margin: 0;
-    padding: 0 0.25rem;
-}
-
-.component-editor-title h2 {
-    margin: 0;
-
-    font-size: 1rem;
-}
-
-.component-editor-title p {
-    margin: 0 0 0 0.75rem;
-
-    color: #64748b;
-
-    font-size: 0.8rem;
-}
-
-
-/*
- * 部品一覧
- */
-
-#componentList {
-    width: 100%;
-    height: calc(100% - 35px);
-
-    display: flex;
-    align-items: stretch;
-
-    gap: 0.75rem;
-
-    padding: 0.25rem;
-
-    overflow-x: auto;
-    overflow-y: hidden;
-}
-
-
-/* ========================================
-   コンポーネント
-   ======================================== */
-
-.component {
-    flex: 0 0 190px;
-
-    min-height: 135px;
-
-    padding: 1rem;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    background-color: #ffffff;
-
-    border: 3px solid #64748b;
-    border-radius: 14px;
-
-    box-shadow:
-        0 5px 0 #cbd5e1,
-        0 8px 14px rgba(0, 0, 0, 0.07);
-
-    cursor: grab;
-
-    user-select: none;
-
-    transition:
-        transform 0.12s ease,
-        border-color 0.12s ease,
-        box-shadow 0.12s ease;
-}
-
-.component:hover {
-    transform: translateY(-3px);
-
-    border-color: #2563eb;
-
-    box-shadow:
-        0 7px 0 #bfdbfe,
-        0 11px 18px rgba(0, 0, 0, 0.1);
-}
-
-.component:active,
-.component.dragging {
-    cursor: grabbing;
-
-    transform: translateY(2px);
-
-    opacity: 0.55;
-}
-
-.component strong {
-    font-size: 1rem;
-}
-
-.component p {
-    margin: 0.35rem 0 0;
-
-    color: #64748b;
-
-    font-size: 0.78rem;
-    line-height: 1.45;
-}
-
-
-/* ========================================
-   通信操作
-   ======================================== */
-
-#communicationControls {
-    position: absolute;
-
-    z-index: 80;
-
-    right: 1rem;
-    bottom: 1rem;
-
-    display: flex;
-
-    gap: 0.5rem;
-}
-
-#communicationControls button {
-    min-height: 34px;
-
-    padding: 0.35rem 0.7rem;
-
-    color: #374151;
-
-    background-color: rgba(
-        255,
-        255,
-        255,
-        0.95
-    );
-
-    border: 1px solid #cbd5e1;
-
-    font-size: 0.75rem;
-}
-
-#communicationControls button:hover {
-    background-color: #f3f4f6;
-}
-
-
-/* ========================================
-   未使用の領域
-   ======================================== */
-
-#stageInfo {
-    display: none;
-}
-
-#attackerInfo {
-    display: none;
-}
-
-#simulation {
-    display: none;
-}
-
-#result {
-    display: none;
-}
-
-
-/* ========================================
-   説明オーバーレイ
-   ======================================== */
-
-.character-intro {
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 1000;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 2rem;
-
-    background-color:
-        rgba(15, 23, 42, 0.65);
-
-    backdrop-filter: blur(4px);
-}
-
-.character-intro.hidden {
-    display: none !important;
-}
-
-.character-intro-window {
-    width: min(900px, 100%);
-
-    max-height:
-        calc(100vh - 4rem);
-
-    display: flex;
-    flex-direction: column;
-
-    background-color: #ffffff;
-
-    border: 1px solid #cbd5e1;
-    border-radius: 18px;
-
-    box-shadow:
-        0 25px 60px
-        rgba(0, 0, 0, 0.25);
-
-    overflow: hidden;
-}
-
-
-/* ========================================
-   説明ヘッダー
-   ======================================== */
-
-.character-intro-header {
-    flex: 0 0 auto;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 1.2rem 1.5rem;
-
-    color: #ffffff;
-
-    background-color: #1f2937;
-}
-
-.character-intro-header h2 {
-    margin: 0;
-
-    font-size: 1.25rem;
-}
-
-#closeCharacterIntro {
-    width: 40px;
-    min-height: 40px;
-
-    padding: 0;
-
-    font-size: 1.5rem;
-    line-height: 1;
-
-    color: #ffffff;
-
-    background-color: transparent;
-
-    border: 1px solid #6b7280;
-}
-
-#closeCharacterIntro:hover {
-    background-color: #374151;
-}
-
-
-/* ========================================
-   説明本文
-   ======================================== */
-
-#characterIntroContent {
-    flex: 1 1 auto;
-
-    min-height: 0;
-
-    padding: 1.5rem;
-
-    overflow-y: auto;
-}
-
-
-/* ========================================
-   キャラクター説明
-   ======================================== */
-
-.intro-character-card {
-    display: flex;
-    align-items: center;
-
-    gap: 1rem;
-
-    margin-bottom: 0.75rem;
-    padding: 1rem;
-
-    background-color: #f8fafc;
-
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-}
-
-.intro-character-icon {
-    flex: 0 0 65px;
-
-    width: 65px;
-    height: 65px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 0.8rem;
-    font-weight: 800;
-
-    background-color: #e2e8f0;
-
-    border-radius: 12px;
-}
-
-.intro-character-card h3 {
-    margin-bottom: 0.2rem;
-}
-
-.intro-character-card p {
-    margin-bottom: 0;
-
-    color: #64748b;
-}
-
-
-/* ========================================
-   目標
-   ======================================== */
-
-.intro-objectives {
-    margin-top: 1.5rem;
-}
-
-.intro-objectives > h3 {
-    margin-bottom: 0.75rem;
-}
-
-.intro-objective {
-    margin-bottom: 0.6rem;
-
-    padding: 0.9rem 1rem;
-
-    border-radius: 10px;
-}
-
-.intro-objective:last-child {
-    margin-bottom: 0;
-}
-
-.intro-objective span {
-    display: inline-block;
-
-    margin-bottom: 0.2rem;
-
-    font-size: 0.75rem;
-    font-weight: 800;
-}
-
-.intro-objective p {
-    margin-bottom: 0;
-}
-
-.intro-objective.final {
-    background-color: #eff6ff;
-    border: 1px solid #bfdbfe;
-}
-
-.intro-objective.objective-a {
-    background-color: #f0fdf4;
-    border: 1px solid #bbf7d0;
-}
-
-.intro-objective.objective-b {
-    background-color: #fff7ed;
-    border: 1px solid #fed7aa;
-}
-
-
-/* ========================================
-   説明フッター
-   ======================================== */
-
-.character-intro-footer {
-    flex: 0 0 auto;
-
-    display: flex;
-    justify-content: flex-end;
-
-    padding: 1rem 1.5rem;
-
-    background-color: #f8fafc;
-
-    border-top: 1px solid #e5e7eb;
-}
-
-
-/* ========================================
-   モバイル
-   ======================================== */
-
-@media (max-width: 800px) {
-
-    #editorHeader {
-        height: 56px;
-
-        padding: 0 0.7rem;
-    }
-
-    #simulatorEditor {
-        height: calc(100vh - 56px);
-    }
-
-    .editor-header-left {
-        gap: 0.6rem;
-    }
-
-    .editor-header-left h1 {
-        font-size: 1.15rem;
-    }
-
-    #stageHeader {
-        padding-left: 0.6rem;
-    }
-
-    #stageTitle {
-        max-width: 150px;
-
-        font-size: 0.75rem;
-    }
-
-    #simulateButton {
-        min-height: 34px;
-
-        padding: 0.35rem 0.6rem;
-
-        font-size: 0.75rem;
-    }
-
-
-    /*
-     * キャンバス
-     */
-
-    #communicationCanvas {
-        background-size: 20px 20px;
-    }
-
-
-    .character-node {
-        width: 100px;
-        min-height: 85px;
-
-        padding: 0.7rem;
-    }
-
-    .character-node-name {
-        font-size: 1rem;
-    }
-
-    .character-node-role {
-        font-size: 0.7rem;
-    }
-
-
-    .attacker-node {
-        width: 100px;
-        min-height: 70px;
-
-        padding: 0.6rem;
-    }
-
-
-    .communication-block {
-        width: 125px;
-        min-height: 75px;
-
-        padding: 0.7rem;
-    }
-
-
-    /*
-     * 下部コンポーネント置き場
-     */
-
-    #componentEditor {
-        flex-basis: 180px;
-
-        padding: 0.6rem;
-    }
-
-    .component-editor-title {
-        height: 30px;
-    }
-
-    .component-editor-title p {
-        display: none;
-    }
-
-    #componentList {
-        height: calc(100% - 30px);
-    }
-
-    .component {
-        flex-basis: 155px;
-
-        min-height: 110px;
-    }
-
-
-    #communicationControls {
-        right: 0.5rem;
-        bottom: 0.5rem;
-    }
-}
-
-
-/* ========================================
-   小型スマートフォン
-   ======================================== */
-
-@media (max-width: 500px) {
-
-    #editorHeader {
-        height: 52px;
-    }
-
-    #simulatorEditor {
-        height: calc(100vh - 52px);
-    }
-
-    .editor-header-left h1 {
-        font-size: 1rem;
-    }
-
-    #stageTitle {
-        max-width: 100px;
-    }
-
-    #simulateButton {
-        font-size: 0.7rem;
-    }
-
-
-    .character-node {
-        width: 78px;
-        min-height: 70px;
-    }
-
-    .character-node-role {
-        display: none;
-    }
-
-
-    .attacker-node {
-        width: 80px;
-        min-height: 60px;
-    }
-
-
-    .communication-block {
-        width: 105px;
-        min-height: 65px;
-    }
-
-
-    #componentEditor {
-        flex-basis: 155px;
-    }
-
-    .component {
-        flex-basis: 135px;
-
-        min-height: 95px;
-    }
-
-
-    .character-intro {
-        padding: 0.75rem;
-    }
-
-    .character-intro-window {
-        max-height:
-            calc(100vh - 1.5rem);
-
-        border-radius: 12px;
-    }
-
-    #characterIntroContent {
-        padding: 1rem;
-    }
-
-    .intro-character-card {
-        padding: 0.75rem;
-    }
-
-    .intro-character-icon {
-        flex-basis: 55px;
-
-        width: 55px;
-        height: 55px;
-    }
+  }
 }
