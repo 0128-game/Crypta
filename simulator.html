@@ -77,6 +77,26 @@
     <p>CRYPTA は暗号と情報セキュリティを学ぶための教材ゲームです。</p>
   </footer>
 
+  <!-- 読み込み失敗の診断用: スクリプトが動かないとき、画面にエラーを出す -->
+  <script>
+    (function () {
+      function show(msg) {
+        var s = document.getElementById('sim-status');
+        if (!s) return;
+        s.hidden = false;
+        s.classList.add('is-error');
+        s.textContent = msg;
+      }
+      window.addEventListener('error', function (e) {
+        var t = e.target;
+        if (t && t.tagName === 'SCRIPT') {
+          show('スクリプトを読み込めませんでした: ' + t.src + '（パスと、ファイル名の大文字小文字を確認してください）');
+        } else {
+          show('エラーが起きました: ' + e.message + '（F12 でコンソールを開くと詳細が見られます）');
+        }
+      }, true);
+    })();
+  </script>
   <script type="module" src="js/simulator.js"></script>
 </body>
 </html>
