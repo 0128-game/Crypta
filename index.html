@@ -1,99 +1,73 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>CRYPTA</title>
-
-    <link rel="stylesheet" href="css/common.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRYPTA | 通信を設計して、攻撃から守る</title>
+  <meta name="description" content="AliceとBobの通信を自分で設計し、EveとMalloryの攻撃から守る。暗号と情報セキュリティを体験で学ぶシミュレーションゲーム。">
+  <link rel="stylesheet" href="css/common.css">
 </head>
+<body class="page-index">
 
-<body>
+  <a class="skip-link" href="#stage-section">ステージ一覧へ移動</a>
 
-    <header>
-        <h1>CRYPTA</h1>
-        <p>暗号通信セキュリティ・シミュレーション</p>
-    </header>
+  <header class="site-header">
+    <a class="site-logo" href="index.html" aria-label="CRYPTA トップへ">CRYPTA</a>
+    <p class="site-progress" id="progress" aria-live="polite"></p>
+  </header>
 
-    <main>
+  <main>
 
-        <section id="intro">
-            <h2>暗号通信を設計しよう</h2>
+    <!-- ヒーロー -->
+    <section class="hero" aria-labelledby="hero-title">
+      <h1 id="hero-title">通信を設計して、攻撃から守る。</h1>
+      <p class="hero-lead">
+        AliceとBobの通信を、自分の手で組み立てる。
+        盗聴するEve、改ざんするMallory。
+        攻撃者にできることを考えながら、安全な通信を目指そう。
+      </p>
+      <div class="hero-actions">
+        <a class="button button-primary" id="start-button" href="simulator.html?stage=test">はじめる</a>
+        <a class="button button-secondary" href="#stage-section">ステージを選ぶ</a>
+      </div>
+    </section>
 
-            <p>
-                AliceとBobの通信を自分で設計し、
-                EveやMalloryから通信を守ろう。
-            </p>
+    <!-- 遊び方（順序があるので番号付き） -->
+    <section class="how-to" aria-labelledby="how-to-title">
+      <h2 id="how-to-title">遊び方</h2>
+      <ol class="how-to-list">
+        <li>
+          <h3>通信を組み立てる</h3>
+          <p>Alice と Bob の間に、暗号化や鍵などのコンポーネントをドラッグして配置します。</p>
+        </li>
+        <li>
+          <h3>攻撃を受ける</h3>
+          <p>シミュレーションを開始すると、EveやMalloryが実際に通信を攻撃します。</p>
+        </li>
+        <li>
+          <h3>原因を知って、作り直す</h3>
+          <p>どの要件が満たされていなかったかを確認し、必要な構成に改善します。</p>
+        </li>
+      </ol>
+      <p class="how-to-note">必要なものを、必要な分だけ。余計な構成が少ないほど高く評価されます。</p>
+    </section>
 
-            <button id="startButton" type="button">
-                ゲームを開始
-            </button>
-        </section>
+    <!-- ステージ一覧（js/index.js が #stage-list にカードを挿入する） -->
+    <section class="stages" id="stage-section" aria-labelledby="stages-title">
+      <h2 id="stages-title">ステージ</h2>
+      <p class="stages-status" id="stage-status" role="status">ステージを読み込み中…</p>
+      <ul class="stage-list" id="stage-list"></ul>
+      <noscript>
+        <p class="stages-status">ステージ一覧の表示には JavaScript が必要です。</p>
+      </noscript>
+    </section>
 
-        <section id="stageSelect">
-            <h2>ステージ選択</h2>
+  </main>
 
-            <div id="stageList">
+  <footer class="site-footer">
+    <p>CRYPTA は暗号と情報セキュリティを学ぶための教材ゲームです。</p>
+  </footer>
 
-                <button type="button" data-stage="1">
-                    Stage 1
-                </button>
-
-                <button type="button" data-stage="2" disabled>
-                    Stage 2
-                </button>
-
-                <button type="button" data-stage="3" disabled>
-                    Stage 3
-                </button>
-
-                <button type="button" data-stage="4" disabled>
-                    Stage 4
-                </button>
-
-                <button type="button" data-stage="5" disabled>
-                    Stage 5
-                </button>
-
-                <button type="button" data-stage="6" disabled>
-                    Stage 6
-                </button>
-
-                <button type="button" data-stage="7" disabled>
-                    Stage 7
-                </button>
-
-                <button type="button" data-stage="8" disabled>
-                    Stage 8
-                </button>
-
-                <button type="button" data-stage="9" disabled>
-                    Stage 9
-                </button>
-
-                <button type="button" data-stage="10" disabled>
-                    Stage 10
-                </button>
-
-                <button type="button" data-stage="11" disabled>
-                    Stage 11
-                </button>
-
-                <button type="button" data-stage="12" disabled>
-                    Stage 12
-                </button>
-
-            </div>
-        </section>
-
-    </main>
-
-    <footer>
-        <p>CRYPTA</p>
-    </footer>
-
-    <script src="js/index.js"></script>
-
+  <script type="module" src="js/index.js"></script>
 </body>
 </html>
