@@ -1,216 +1,495 @@
-/* ========================================
-   CRYPTA - common.css
+/* ==========================================================
+   CRYPTA common.css
    index.html / simulator.html 共通
-   ======================================== */
+   方針: ライト調・丸っこい・「暗号は難しそう」を崩す
+   ========================================================== */
 
-/* ---------- 基本設定 ---------- */
+@import url("https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap");
 
-* {
-    box-sizing: border-box;
+/* ---------- デザイントークン ---------- */
+:root {
+  /* 色 */
+  --bg: #f6f8ff;
+  --surface: #ffffff;
+  --ink: #263152;
+  --ink-soft: #5d6785;
+  --line: #e3e8f7;
+
+  --primary: #5468ff;
+  --primary-deep: #3a4bdb;
+  --primary-soft: #e8ebff;
+
+  --eve: #14a39b;
+  --eve-soft: #dcf5f2;
+  --mallory: #ee5f78;
+  --mallory-soft: #ffe3e8;
+
+  --sun: #ffc94d;
+  --sun-soft: #fff1c9;
+  --ok: #2bb673;
+  --ok-soft: #d9f5e7;
+
+  /* 角丸（3段階だけ使う） */
+  --r-lg: 28px;
+  --r-md: 20px;
+  --r-pill: 999px;
+
+  /* 影 */
+  --shadow-soft: 0 6px 20px rgba(84, 104, 255, 0.1);
+  --shadow-lift: 0 10px 26px rgba(84, 104, 255, 0.18);
+
+  /* 余白 */
+  --gap: 1.25rem;
+  --page-width: 960px;
+
+  /* 書体 */
+  --font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "BIZ UDPGothic",
+    "Yu Gothic", "Meiryo", system-ui, sans-serif;
+}
+
+/* ---------- リセット・ベース ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html {
-    font-size: 16px;
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-    margin: 0;
-    min-width: 320px;
-
-    font-family:
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-
-    line-height: 1.6;
-    color: #1f2937;
-    background-color: #f3f4f6;
+  margin: 0;
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--ink);
+  background: var(--bg);
 }
 
-
-/* ---------- 見出し・文章 ---------- */
-
-h1,
-h2,
-h3,
-p {
-    margin-top: 0;
+h1, h2, h3, p, ul, ol {
+  margin: 0;
 }
 
-h1,
-h2,
-h3 {
-    line-height: 1.3;
+ul, ol {
+  padding: 0;
+  list-style: none;
 }
 
-h1 {
-    margin-bottom: 0.25rem;
+a {
+  color: inherit;
 }
 
-h2 {
-    margin-bottom: 1rem;
+img, svg {
+  max-width: 100%;
+  display: block;
 }
 
-p {
-    margin-bottom: 1rem;
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 8px;
 }
 
-
-/* ---------- ヘッダー ---------- */
-
-header {
-    padding: 2rem 1.5rem;
-    text-align: center;
-
-    color: #ffffff;
-    background-color: #1f2937;
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
-header h1 {
-    margin-bottom: 0.25rem;
-    font-size: 2rem;
+/* ---------- スキップリンク ---------- */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: var(--ink);
+  color: #fff;
+  border-radius: var(--r-pill);
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 1rem;
 }
 
-header p {
-    margin-bottom: 0;
-    color: #d1d5db;
+/* ---------- ヘッダー・フッター ---------- */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 1.25rem 1.25rem 0;
 }
 
-
-/* ---------- メイン ---------- */
-
-main {
-    width: min(100% - 2rem, 1000px);
-    margin: 2rem auto;
+.site-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: var(--primary);
 }
 
-
-/* ---------- セクション ---------- */
-
-section {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-
-    background-color: #ffffff;
-    border: 1px solid #d1d5db;
-    border-radius: 12px;
+.site-progress {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+  padding: 0.25rem 1rem;
+  border-radius: var(--r-pill);
+}
+.site-progress:empty {
+  display: none;
 }
 
-section:last-child {
-    margin-bottom: 0;
+.site-footer {
+  max-width: var(--page-width);
+  margin: 4rem auto 0;
+  padding: 2rem 1.25rem 3rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
 }
-
 
 /* ---------- ボタン ---------- */
-
-button {
-    min-height: 44px;
-    padding: 0.65rem 1rem;
-
-    font: inherit;
-    font-weight: 600;
-
-    color: #ffffff;
-    background-color: #2563eb;
-
-    border: 1px solid #1d4ed8;
-    border-radius: 8px;
-
-    cursor: pointer;
-
-    transition:
-        background-color 0.15s ease,
-        border-color 0.15s ease,
-        transform 0.1s ease;
+.button {
+  display: inline-block;
+  padding: 0.85rem 2rem;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.4;
+  text-decoration: none;
+  text-align: center;
+  border: none;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-button:hover:not(:disabled) {
-    background-color: #1d4ed8;
+.button-primary {
+  color: #fff;
+  background: var(--primary);
+  box-shadow: 0 5px 0 var(--primary-deep);
+}
+.button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 var(--primary-deep);
+}
+.button-primary:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--primary-deep);
 }
 
-button:active:not(:disabled) {
-    transform: translateY(1px);
+.button-secondary {
+  color: var(--primary-deep);
+  background: var(--surface);
+  box-shadow: 0 5px 0 var(--line);
+  border: 2px solid var(--line);
+  padding: calc(0.85rem - 2px) calc(2rem - 2px);
+}
+.button-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 var(--line);
+}
+.button-secondary:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--line);
 }
 
-button:focus-visible {
-    outline: 3px solid #93c5fd;
-    outline-offset: 2px;
+/* ---------- 攻撃者バッジ（simulator でも使う） ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.1rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.7;
+  border-radius: var(--r-pill);
+}
+.badge::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+.badge-eve {
+  color: var(--eve);
+  background: var(--eve-soft);
+}
+.badge-mallory {
+  color: var(--mallory);
+  background: var(--mallory-soft);
 }
 
-button:disabled {
-    color: #6b7280;
-    background-color: #e5e7eb;
-    border-color: #d1d5db;
-    cursor: not-allowed;
+/* ==========================================================
+   index.html 専用（body.page-index 配下）
+   ========================================================== */
+
+.page-index main {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 0;
 }
 
+.page-index h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+}
+
+/* ---------- ヒーロー ---------- */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(2rem, 6vw, 4rem) clamp(1.5rem, 5vw, 3.5rem);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+/* 飾りの丸（アリス・ボブ・イブを思わせる3つの玉） */
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hero::before {
+  width: 17rem;
+  height: 17rem;
+  right: -5rem;
+  top: -5rem;
+  background: var(--primary-soft);
+}
+.hero::after {
+  width: 7rem;
+  height: 7rem;
+  right: 6rem;
+  bottom: -2.5rem;
+  background: var(--sun-soft);
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero h1 {
+  font-size: clamp(1.9rem, 6vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+.hero-lead {
+  max-width: 32em;
+  margin-top: 1.25rem;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+/* ---------- 遊び方 ---------- */
+.how-to {
+  margin-top: 3.5rem;
+}
+
+.how-to-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--gap);
+  counter-reset: step;
+}
+
+.how-to-list li {
+  counter-increment: step;
+  padding: 1.5rem;
+  background: var(--surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-soft);
+}
+
+.how-to-list li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--primary);
+  border-radius: 50%;
+}
+.how-to-list li:nth-child(2)::before {
+  background: var(--mallory);
+}
+.how-to-list li:nth-child(3)::before {
+  background: var(--eve);
+}
+
+.how-to-list h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+
+.how-to-list p {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.how-to-note {
+  margin-top: 1.25rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #8a6200;
+  background: var(--sun-soft);
+  border-radius: var(--r-pill);
+  text-align: center;
+}
 
 /* ---------- ステージ一覧 ---------- */
-
-#stageList {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
+.stages {
+  margin-top: 3.5rem;
+  scroll-margin-top: 1rem;
 }
 
-#stageList button {
-    width: 100%;
+.stages-status {
+  padding: 1rem 1.25rem;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border-radius: var(--r-md);
+}
+.stages-status[hidden] {
+  display: none;
+}
+.stages-status.is-error {
+  color: #a33145;
+  background: var(--mallory-soft);
 }
 
-
-/* ---------- フッター ---------- */
-
-footer {
-    margin-top: 3rem;
-    padding: 1.5rem;
-
-    text-align: center;
-
-    color: #6b7280;
-    background-color: #e5e7eb;
+.stage-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--gap);
 }
 
-footer p {
-    margin-bottom: 0;
+.stage-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  height: 100%;
+  padding: 1.25rem 1.25rem 1.4rem;
+  color: inherit;
+  text-decoration: none;
+  background: var(--surface);
+  border: 2px solid transparent;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-
-/* ---------- 汎用ユーティリティ ---------- */
-
-.hidden {
-    display: none !important;
+a.stage-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: var(--primary-soft);
 }
 
-.text-center {
-    text-align: center;
+.stage-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
+.stage-number {
+  display: grid;
+  place-items: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.6rem;
+  font-weight: 800;
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+  border-radius: var(--r-pill);
+}
+
+.stage-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.stage-goal {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.stage-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 0.4rem;
+}
+
+/* 評価チップ */
+.rating {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-weight: 800;
+  border-radius: 50%;
+}
+.rating-S { background: var(--sun);  color: #6b4a00; }
+.rating-A { background: var(--ok);   color: #fff; }
+.rating-B { background: var(--primary); color: #fff; }
+.rating-C { background: var(--line); color: var(--ink-soft); }
+
+/* 状態: ロック */
+.stage-card.is-locked {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: none;
+  border: 2px dashed var(--line);
+  color: var(--ink-soft);
+  cursor: not-allowed;
+}
+.stage-card.is-locked .stage-number {
+  color: var(--ink-soft);
+  background: var(--line);
+}
+.stage-lock-note {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+/* 状態: クリア済み */
+.stage-card.is-cleared {
+  border-color: var(--ok-soft);
+}
 
 /* ---------- 小さい画面 ---------- */
-
-@media (max-width: 600px) {
-    header {
-        padding: 1.5rem 1rem;
-    }
-
-    header h1 {
-        font-size: 1.75rem;
-    }
-
-    main {
-        width: min(100% - 1rem, 1000px);
-        margin: 1rem auto;
-    }
-
-    section {
-        padding: 1rem;
-        border-radius: 8px;
-    }
-
-    #stageList {
-        grid-template-columns: 1fr 1fr;
-    }
+@media (max-width: 480px) {
+  .hero-actions .button {
+    flex: 1 1 100%;
+  }
 }
