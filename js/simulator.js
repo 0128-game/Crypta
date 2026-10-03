@@ -1,73 +1,32 @@
 // simulator.js
-// 全ステージ共通のシミュレータ本体
+// 全ステージ共通のシミュレータ画面
 //
-// 構成:
-//   1. 定義        : 攻撃者の能力・アルゴリズム・コンポーネントのテーブル
-//   2. 状態とユーティリティ
-//   3. データ（パケット）: 暗号化の見た目・色
-//   4. 操作        : ノード追加/削除、ドラッグ、線のつなぎ方
-//   5. 描画        : ノード・線・条件パネル
-//   6. 評価        : 通信をたどって（トレース）、Eve の様子と評価を求める
-//   7. アニメーション: トレースを電気が流れる様子として再生する
-//   8. 結果表示
-//   9. 起動
-//
-// 評価ロジック（6）は大きくなったら js/evaluator.js に切り出す想定。
+// 通信の評価（Eve・Mallory の攻撃、Bob が受け入れたか）は engine.js が行う。
+// この simulator.js は、
+//   ・キャンバスの操作（部品の配置・ドラッグ・配線・拡大・移動）
+//   ・ステージの条件の表示
+//   ・engine.js が求めた「流れ」を、線の上を電気が流れるアニメーションにして見せる
+//   ・結果の表示
+// を担当する。
 
 // 名前付き import だと、stages.js に export が無いときモジュール全体が起動しなくなる。
 // 名前空間 import にして、足りない場合は個別に扱う。
 import * as stagesModule from './stages.js';
+import {
+  DATA, KEY, PUB, PRIV,
+  COMPONENTS, ATTACKS, REQUIREMENTS, COLORS,
+  typesCompatible, availableComponents, availableAlgorithms,
+  algorithmInfo, computeInfo, capsFor, rulesFor, objectiveKeys, stageMessage,
+  bundleText, bundleColor, valueColor, valueText, evaluateStage,
+} from './engine.js';
 
 const STAGE_IDS = stagesModule.STAGE_IDS ?? [];
 const PROGRESS_KEY = 'crypta:progress';
-
-/* ==========================================================
-   1. 定義
-   ========================================================== */
-
-// データの色
-const COLORS = {
-  plain: '#ff8a1f',   // 元のデータ（暗号化されていない）
-  garbled: '#8c93a8', // 意味のないデータ（復号の失敗など）
-  key: '#a35cf0',     // 鍵
-  cipherFallback: '#8a63d2',
-};
-
-// 攻撃者の計算能力。数字が大きいほど強い。
-const COMPUTE = {
-  observer: { level: 0, label: '観測するだけ' },
-  human: { level: 1, label: '手作業で解析できる' },
-  computer: { level: 2, label: 'コンピュータで解析できる' },
-};
-
-// アルゴリズム。breakLevel 以上の計算能力を持つ攻撃者に破られる。
-// 暗号化されたデータは color の色で流れる。（数値は仮置き。ステージを作りながら調整する）
-const ALGORITHMS = {
-  caesar: {
-    label: 'シーザー暗号',
-    short: 'Caesar',
-    color: '#19b394',
-    breakLevel: 1,
-    weakness: 'ずらし幅が25通りしかないので、解析されるとすぐに破られます。',
-  },
-  aes: {
-    label: 'AES',
-    short: 'AES',
-    color: '#4c6fff',
-    breakLevel: Infinity,
-    weakness: '',
-  },
-};
-
-const REQUIREMENTS = {
-  confidentiality: { label: '機密性', desc: '盗聴者に内容を読まれない' },
-  integrity: { label: '完全性', desc: '途中で改ざんされない' },
-  authenticity: { label: '真正性', desc: '本当に相手からの通信だとわかる' },
-};
+const RATING_ORDER = { C: 0, B: 1, A: 2, S: 3 };
 
 const ATTACKERS = {
   eve: { label: 'Eve', role: '盗聴', className: 'badge-eve' },
-  mallory: { label: 'Mallory', role: '改ざん', className: 'badge-mallory' },
+  mallory: { label: 'Mallory', role: '改ざん・なりすまし', className: 'badge-mallory' },
 };
 
 const CAP_LABELS = {
@@ -75,71 +34,18 @@ const CAP_LABELS = {
   observedMessages: '見られる通信',
   knownInfo: '知っている情報',
   observationScope: '観測できる範囲',
+  attacks: 'できる攻撃',
+  seesMetadata: '宛先・アプリ',
 };
 const SCOPE_LABELS = { channel: '通信路' };
 
-// コンポーネント定義
-//   movable   : false なら動かせない（既定 true）
-//   removable : false なら削除できない（既定 true）
-//   palette   : false なら下の一覧に出さない（既定 true）
-const DATA = 'data';
-const KEY = 'key';
-
-const COMPONENTS = {
-  alice: {
-    label: 'Alice',
-    avatar: 'A',
-    removable: false,
-    palette: false,
-    inputs: [],
-    outputs: [{ id: 'out', type: DATA, label: 'メッセージ' }],
-  },
-  bob: {
-    label: 'Bob',
-    avatar: 'B',
-    removable: false,
-    palette: false,
-    inputs: [{ id: 'in', type: DATA, label: 'メッセージ' }],
-    outputs: [],
-  },
-  channel: {
-    label: '通信路',
-    removable: false,
-    palette: false,
-    inputs: [{ id: 'in', type: DATA, label: '' }],
-    outputs: [{ id: 'out', type: DATA, label: '' }],
-  },
-  encrypt: {
-    label: '暗号化',
-    desc: '読めない形にする',
-    hasAlgorithm: true,
-    inputs: [
-      { id: 'data', type: DATA, label: 'データ' },
-      { id: 'key', type: KEY, label: '鍵' },
-    ],
-    outputs: [{ id: 'out', type: DATA, label: '暗号文' }],
-  },
-  decrypt: {
-    label: '復号',
-    desc: '元の形に戻す',
-    hasAlgorithm: true,
-    inputs: [
-      { id: 'data', type: DATA, label: '暗号文' },
-      { id: 'key', type: KEY, label: '鍵' },
-    ],
-    outputs: [{ id: 'out', type: DATA, label: 'データ' }],
-  },
-  key: {
-    label: '鍵',
-    desc: '暗号化・復号に使う秘密',
-    inputs: [],
-    outputs: [{ id: 'out', type: KEY, label: '鍵' }],
-  },
+const BAD_LABELS = {
+  tampered: '書き換えられた本文',
+  forged: '偽の本文',
+  garbled: '壊れたデータ',
 };
 
-/* ==========================================================
-   2. 状態とユーティリティ
-   ========================================================== */
+/* ---------- 状態 ---------- */
 
 let stage = null;
 let graph = { nodes: [], edges: [] };
@@ -151,11 +57,24 @@ let zoom = 1;                // キャンバスの拡大率（ホイール・ピ
 const ZOOM_MIN = 0.3;
 const ZOOM_MAX = 2.5;
 
+let suppressPaletteClick = false;
+let briefRestore = null;     // 結果を出す前に条件パネルが開いていたか
+const bgPointers = new Map(); // 背景を触っている指・ポインタ
+let pinch = null;
+
 const dom = {};
-const edgeEls = new Map();    // edgeId → { line, energy, len }
+const edgeEls = new Map();     // edgeId → { line, energy, len }
 const energyState = new Map(); // edgeId → 色（電気が通った線）
 
+const SPEED = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.15 : 1;
+const sim = { running: false, skipped: false, jobs: new Set() };
+
 const $ = (selector) => document.querySelector(selector);
+
+
+/* ==========================================================
+   キャンバスの操作（そのまま使う部分）
+   ========================================================== */
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -178,13 +97,11 @@ function nextId(prefix) {
   seq += 1;
   return `${prefix}${seq}`;
 }
-
 // ノードの座標は「キャンバス上の位置」で持つ（拡大・移動の影響を受けない）。
 // 画面上の位置との変換は、worldRect() を基準に zoom で割る。
 function worldRect() {
   return dom.world.getBoundingClientRect();
 }
-
 // 画面上の座標 → キャンバス上の座標
 function toWorld(clientX, clientY) {
   const r = worldRect();
@@ -197,7 +114,6 @@ function applyPan() {
   dom.board.style.backgroundSize = `${24 * zoom}px ${24 * zoom}px`;
   if (dom.zoomLabel) dom.zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
 }
-
 // (clientX, clientY) の下にあるキャンバス上の点を動かさずに、拡大率だけ変える
 function zoomAt(clientX, clientY, nextZoom) {
   const nz = clamp(nextZoom, ZOOM_MIN, ZOOM_MAX);
@@ -220,7 +136,6 @@ function resetView() {
   zoom = 1;
   applyPan();
 }
-
 // すべてのノードがちょうど入るように、拡大率と位置を合わせる
 function fitView() {
   if (graph.nodes.length === 0) return;
@@ -240,7 +155,7 @@ function fitView() {
   const H = dom.board.clientHeight;
   // 重ねて表示している部品一覧やボタンの下に隠れないよう、余白をとる
   const padLeft = W >= 900 ? dom.sideStack.offsetWidth + 24 : 24;
-  const padRight = 24;
+  const padRight = 76; // 右側の拡大・縮小ボタンの下に隠れないように
   const padTop = 70;
   const padBottom = dom.paletteBar.offsetParent ? dom.paletteBar.offsetHeight + 24 : 24;
   const availW = Math.max(100, W - padLeft - padRight);
@@ -262,38 +177,13 @@ function nodeElOf(id) {
   return dom.board.querySelector(`.node[data-id="${id}"]`);
 }
 
-function algorithmInfo(id) {
-  return (
-    ALGORITHMS[id] ?? {
-      label: id ?? '不明',
-      short: id ?? '?',
-      color: COLORS.cipherFallback,
-      breakLevel: Infinity,
-      weakness: '',
-    }
-  );
-}
-
-function computeInfo(id) {
-  if (!(id in COMPUTE)) {
-    console.warn(`[simulator] 未知の compute: ${id}（observer として扱います）`);
-    return COMPUTE.observer;
-  }
-  return COMPUTE[id];
-}
-
-function capsFor(objectiveKey) {
-  const override = stage.objectives[objectiveKey]?.attackerOverride ?? {};
-  return { ...(stage.attacker?.capabilities ?? {}), ...override };
-}
-
 function initialGraph() {
   const W = dom.board.clientWidth || 900;
   const H = dom.board.clientHeight || 600;
 
   // 通信路（背が高い）が、下の部品バーにかぶらない高さに置く
   const barH = dom.paletteBar?.offsetHeight || 120;
-  const channelH = 260;
+  const channelH = 340;
   const channelY = Math.max(70, H - barH - 28 - channelH);
 
   // 条件パネルを開いていて、横幅に余裕があるときは、パネルの右から並べる
@@ -337,73 +227,6 @@ function initialGraph() {
   };
 }
 
-/* ==========================================================
-   3. データ（パケット）の見た目
-   ========================================================== */
-// packet = { layers: [{ alg, keyId }], garbled, viaChannel }
-//   layers が空で garbled でなければ「元のデータ」。
-//   暗号化するたびに layers の末尾へ積まれ、復号で外れる。
-
-const newPacket = () => ({ layers: [], garbled: false, viaChannel: false });
-const isReadable = (p) => !p.garbled && p.layers.length === 0;
-
-function stageMessage() {
-  return stage?.message ?? 'HELLO';
-}
-
-function caesar(text, shift) {
-  return text.replace(/[A-Za-z]/g, (c) => {
-    const base = c <= 'Z' ? 65 : 97;
-    return String.fromCharCode(((c.charCodeAt(0) - base + shift) % 26) + base);
-  });
-}
-
-// 暗号文の見た目をそれらしく作る（本物の暗号ではなく、表示用）
-function mockEncrypt(alg, text, keyId) {
-  if (alg === 'caesar') return caesar(text, 3);
-  let seed = 2166136261;
-  for (const ch of `${alg}|${keyId}|${text}`) {
-    seed = Math.imul(seed ^ ch.charCodeAt(0), 16777619) >>> 0;
-  }
-  const bytes = [];
-  for (let i = 0; i < 5; i += 1) {
-    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-    bytes.push((seed >>> 24).toString(16).padStart(2, '0'));
-  }
-  return `${bytes.join(' ')}…`;
-}
-
-function packetText(packet) {
-  if (packet.garbled) return '▒▒▒▒▒';
-  return packet.layers.reduce((text, l) => mockEncrypt(l.alg, text, l.keyId), stageMessage());
-}
-
-function packetColor(packet) {
-  if (packet.garbled) return COLORS.garbled;
-  if (packet.layers.length === 0) return COLORS.plain;
-  return algorithmInfo(packet.layers[packet.layers.length - 1].alg).color;
-}
-
-function packetKindLabel(packet) {
-  if (packet.garbled) return '意味のないデータ';
-  if (packet.layers.length === 0) return '元のデータ';
-  return `暗号文（${algorithmInfo(packet.layers[packet.layers.length - 1].alg).short}）`;
-}
-
-/* ==========================================================
-   4. 操作
-   ========================================================== */
-
-function addNode(type, x, y) {
-  const def = COMPONENTS[type];
-  const node = { id: nextId(type), type, x, y, params: {} };
-  if (def.hasAlgorithm) node.params.algorithm = stage.algorithms[0];
-  graph.nodes.push(node);
-  renderNodes();
-  onGraphChanged();
-  return node;
-}
-
 function removeNode(id) {
   graph.nodes = graph.nodes.filter((n) => n.id !== id);
   graph.edges = graph.edges.filter((e) => e.from.node !== id && e.to.node !== id);
@@ -424,31 +247,6 @@ function getPortDef(nodeId, portId, dir) {
   return list.find((p) => p.id === portId) ?? null;
 }
 
-// from: { node, port, type } / toEl: 入力ポートの要素
-function isCompatible(from, toEl) {
-  return Boolean(
-    toEl &&
-      toEl.dataset.dir === 'in' &&
-      toEl.dataset.type === from.type &&
-      toEl.dataset.node !== from.node
-  );
-}
-
-function connect(from, toEl) {
-  const to = { node: toEl.dataset.node, port: toEl.dataset.port };
-  if (!getPortDef(to.node, to.port, 'in')) return;
-  // 入力ポートにつながる線は1本だけ。つなぎ直したら置き換える。
-  graph.edges = graph.edges.filter((e) => !(e.to.node === to.node && e.to.port === to.port));
-  graph.edges.push({
-    id: nextId('edge'),
-    type: from.type,
-    from: { node: from.node, port: from.port },
-    to,
-  });
-  renderEdges();
-  onGraphChanged();
-}
-
 function clearPending() {
   pending = null;
   clearPortMarks();
@@ -465,7 +263,6 @@ function markTargets(from) {
     if (isCompatible(from, p)) p.classList.add('is-target');
   });
 }
-
 // --- 出力ポートからのドラッグ（またはタップ）で線をつなぐ ---
 function startConnect(e, from, portEl) {
   e.preventDefault();
@@ -503,7 +300,6 @@ function startConnect(e, from, portEl) {
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onUp);
 }
-
 // キーボード操作（Enter/Space）でのポート選択
 function togglePendingByKeyboard(from, portEl) {
   if (pending && pending.node === from.node && pending.port === from.port) {
@@ -515,7 +311,6 @@ function togglePendingByKeyboard(from, portEl) {
   portEl.classList.add('is-pending');
   markTargets(from);
 }
-
 // --- ノードのドラッグ移動 ---
 function startNodeDrag(e, node, nodeEl) {
   e.preventDefault();
@@ -544,10 +339,6 @@ function startNodeDrag(e, node, nodeEl) {
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onUp);
 }
-
-// --- キャンバス自体のドラッグ（何もないところをつかんで動かす）と、2本指のピンチ ---
-const bgPointers = new Map(); // 背景を触っている指・ポインタ
-let pinch = null;
 
 function pinchPoints() {
   const [a, b] = [...bgPointers.values()];
@@ -637,7 +428,6 @@ function startPan(e) {
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onUp);
 }
-
 // マウスのホイール（トラックパッドのピンチも ctrl + ホイールとして届く）で拡大・縮小
 function onWheel(e) {
   e.preventDefault();
@@ -646,9 +436,6 @@ function onWheel(e) {
   const speed = e.ctrlKey ? 0.01 : 0.0015;
   zoomAt(e.clientX, e.clientY, zoom * Math.exp(-delta * speed));
 }
-
-// --- コンポーネント一覧からのドラッグ配置（クリックなら空いている場所に置く） ---
-let suppressPaletteClick = false;
 
 function startPaletteDrag(e, type, label) {
   if (e.button !== undefined && e.button !== 0) return;
@@ -690,7 +477,6 @@ function startPaletteDrag(e, type, label) {
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onUp);
 }
-
 // 重ねて表示している要素（条件パネルなど）の、キャンバス上の位置
 function overlayRect(element) {
   if (!element || !element.offsetParent) return null;
@@ -703,7 +489,6 @@ function overlayRect(element) {
     h: r.height / zoom,
   };
 }
-
 // クリック・キーボードで置くときの位置（いま見えている範囲で、他のものと重ならない所）
 function findFreePosition() {
   // いま見えている範囲（キャンバス上の座標）
@@ -734,85 +519,10 @@ function findFreePosition() {
     y: top + 90 + (graph.nodes.length % 5) * 30,
   };
 }
-
 // グラフが変わったら、前の結果は古くなる
 function onGraphChanged() {
   hideResult();
   clearOutcome();
-}
-
-/* ==========================================================
-   5. 描画
-   ========================================================== */
-
-function renderNodes() {
-  clearPending();
-  dom.board.querySelectorAll('.node').forEach((n) => n.remove());
-  graph.nodes.forEach((node) => dom.world.append(createNodeEl(node)));
-  refreshEveCaps();
-  renderEdges();
-}
-
-function createNodeEl(node) {
-  const def = COMPONENTS[node.type];
-
-  const root = el('div', `node node-${node.type}`);
-  root.dataset.id = node.id;
-  root.style.left = `${node.x}px`;
-  root.style.top = `${node.y}px`;
-  root.setAttribute('role', 'group');
-  root.setAttribute('aria-label', def.label);
-
-  // ヘッダー
-  const head = el('div', 'node-head');
-  if (def.avatar) head.append(el('span', 'node-avatar', def.avatar));
-  head.append(el('span', 'node-title', def.label));
-  if (def.removable !== false) {
-    const remove = el('button', 'node-remove', '×');
-    remove.type = 'button';
-    remove.setAttribute('aria-label', `${def.label}を削除`);
-    remove.addEventListener('click', () => removeNode(node.id));
-    head.append(remove);
-  }
-  root.append(head);
-
-  // アルゴリズム選択
-  if (def.hasAlgorithm) {
-    if (stage.algorithms.length > 1) {
-      const select = el('select', 'node-algo');
-      select.setAttribute('aria-label', `${def.label}のアルゴリズム`);
-      stage.algorithms.forEach((id) => {
-        const opt = el('option', null, algorithmInfo(id).label);
-        opt.value = id;
-        opt.selected = id === node.params.algorithm;
-        select.append(opt);
-      });
-      select.addEventListener('change', () => {
-        node.params.algorithm = select.value;
-        onGraphChanged();
-      });
-      root.append(select);
-    } else {
-      root.append(el('span', 'node-algo-fixed', algorithmInfo(node.params.algorithm).label));
-    }
-  }
-
-  if (node.type === 'channel') {
-    buildChannelBody(root, node);
-  } else {
-    def.inputs.forEach((port) => root.append(createPortRow(node, port, 'in')));
-    def.outputs.forEach((port) => root.append(createPortRow(node, port, 'out')));
-    if (node.type !== 'key') root.append(createPacketChip());
-  }
-
-  // ドラッグ移動
-  root.addEventListener('pointerdown', (e) => {
-    if (e.button !== undefined && e.button !== 0) return;
-    if (e.target.closest('.port, select, .node-remove')) return;
-    startNodeDrag(e, node, root);
-  });
-
-  return root;
 }
 
 function createPacketChip() {
@@ -820,42 +530,6 @@ function createPacketChip() {
   chip.hidden = true;
   chip.append(el('span', 'packet-dot'), el('span', 'packet-text'));
   return chip;
-}
-
-// 通信路: 中を流れるデータと、Eve の「盗む → 解析する」を見せる
-function buildChannelBody(root, node) {
-  const def = COMPONENTS.channel;
-
-  const tube = el('div', 'tube');
-  const slot = el('div', 'tube-packet');
-  slot.append(el('span', 'packet-dot'), el('span', 'packet-text', '—'));
-  tube.append(
-    createPortRow(node, def.inputs[0], 'in'),
-    slot,
-    createPortRow(node, def.outputs[0], 'out')
-  );
-  root.append(tube);
-
-  const keys = attackerKeys(stage);
-  if (keys.includes('eve')) {
-    root.append(el('div', 'tap-line'));
-
-    const box = el('div', 'eve-box');
-    const head = el('div', 'eve-head');
-    head.append(el('span', 'badge badge-eve', 'Eve'), el('span', 'eve-caps'));
-    box.append(head);
-
-    box.append(createEveRow('傍受', 'capture'), createEveRow('解析', 'analysis'));
-
-    const copy = el('div', 'eve-copy');
-    copy.hidden = true;
-    copy.append(el('span', 'packet-dot'), el('span', 'packet-text'));
-    box.append(copy);
-    root.append(box);
-  }
-  if (keys.includes('mallory')) {
-    root.append(el('p', 'eve-note', 'Mallory の改ざんは、このシミュレータではまだ判定されません。'));
-  }
 }
 
 function createEveRow(label, row) {
@@ -914,7 +588,6 @@ function portCenter(nodeId, portId, dir) {
     y: (r.top + r.height / 2 - b.top) / zoom,
   };
 }
-
 // 直線だけで作る S 字の配線（横 → 縦 → 横）
 function route(a, b) {
   const stub = 24;
@@ -932,6 +605,343 @@ function route(a, b) {
   if (Math.abs(ay - by) < 60) my = ay + 90;
   return `M ${ax} ${ay} H ${ax + stub} V ${my} H ${bx - stub} V ${by} H ${bx}`;
 }
+
+function drawTempEdge(from, clientX, clientY) {
+  const a = portCenter(from.node, from.port, 'out');
+  if (!a) return;
+  const end = toWorld(clientX, clientY);
+  dom.tempLayer.replaceChildren(svgEl('path', { class: 'edge-temp', d: route(a, end) }));
+}
+
+function clearTempEdge() {
+  dom.tempLayer.replaceChildren();
+}
+// --- ステージの条件パネル ---
+function attackerKeys(s) {
+  const type = String(s.attacker?.type ?? '').toLowerCase();
+  return type.split(/[+,&\s]+/).filter((key) => key in ATTACKERS);
+}
+
+function requirementsText(list) {
+  return (list ?? [])
+    .map((r) => {
+      const info = REQUIREMENTS[r];
+      return info ? `${info.label}（${info.desc}）` : r;
+    })
+    .join('、');
+}
+
+function setBriefCollapsed(collapsed) {
+  dom.briefPanel.classList.toggle('is-collapsed', collapsed);
+  dom.briefToggle.setAttribute('aria-expanded', String(!collapsed));
+  dom.briefToggle.textContent = collapsed ? '条件を見る' : '隠す';
+}
+// 時間経過つきの処理。skip されたら最後の状態まで一気に進む。
+function runTween(duration, onFrame) {
+  return new Promise((resolve) => {
+    if (sim.skipped || duration <= 0) {
+      onFrame(1);
+      resolve();
+      return;
+    }
+    const t0 = performance.now();
+    const job = {
+      finish() {
+        onFrame(1);
+        resolve();
+      },
+    };
+    sim.jobs.add(job);
+    const tick = (now) => {
+      if (!sim.jobs.has(job)) return;
+      const p = Math.min(1, (now - t0) / duration);
+      onFrame(p);
+      if (p >= 1) {
+        sim.jobs.delete(job);
+        resolve();
+      } else {
+        requestAnimationFrame(tick);
+      }
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+function skipSimulation() {
+  sim.skipped = true;
+  [...sim.jobs].forEach((job) => {
+    sim.jobs.delete(job);
+    job.finish();
+  });
+}
+
+function saveProgress(id, rating) {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    const data = raw ? JSON.parse(raw) : {};
+    const prev = data[id]?.rating;
+    if (!prev || RATING_ORDER[rating] > RATING_ORDER[prev]) {
+      data[id] = { rating };
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+    }
+  } catch (err) {
+    console.warn('[simulator] 進捗を保存できませんでした', err);
+  }
+}
+
+function hideResult() {
+  dom.result.hidden = true;
+  dom.result.replaceChildren();
+  dom.editor.classList.remove('has-result');
+  if (briefRestore !== null) {
+    setBriefCollapsed(!briefRestore);
+    briefRestore = null;
+  }
+}
+
+function createActions(cleared) {
+  const actions = el('div', 'result-actions');
+
+  const retry = el('button', 'button button-secondary', 'もう一度つくる');
+  retry.type = 'button';
+  retry.addEventListener('click', hideResult);
+  actions.append(retry);
+
+  const idx = STAGE_IDS.indexOf(stage.id);
+  const nextId = idx >= 0 ? STAGE_IDS[idx + 1] : null;
+  if (cleared && nextId) {
+    const next = el('a', 'button button-primary', '次のステージへ');
+    next.href = `simulator.html?stage=${encodeURIComponent(nextId)}`;
+    actions.append(next);
+  }
+
+  const back = el('a', 'button button-secondary', 'ステージ一覧へ');
+  back.href = 'index.html#stage-section';
+  actions.append(back);
+
+  return actions;
+}
+
+function revealResult() {
+  dom.result.scrollTop = 0;
+  dom.result.focus({ preventScroll: true });
+}
+
+function showStatus(message, isError = false) {
+  dom.status.textContent = message;
+  dom.status.hidden = false;
+  dom.status.classList.toggle('is-error', isError);
+}
+
+function resetBoard() {
+  seq = 0;
+  energyState.clear();
+  resetView();
+  graph = initialGraph();
+  renderNodes();
+  hideResult();
+  clearOutcome();
+}
+
+/* ==========================================================
+   部品の追加・つなぎ方
+   ========================================================== */
+
+// 鍵ペアの持ち主の初期値（すでに置いてあれば、もう一方）
+function defaultOwner() {
+  const preferred = stage.defaults?.owner ?? 'bob';
+  const used = graph.nodes.some((n) => n.type === 'keypair' && n.params.owner === preferred);
+  if (!used) return preferred;
+  return preferred === 'bob' ? 'alice' : 'bob';
+}
+
+function addNode(type, x, y) {
+  const def = COMPONENTS[type];
+  const node = { id: nextId(type), type, x, y, params: {} };
+  if (def.hasAlgorithm) node.params.algorithm = stage.algorithms[0];
+  if (def.hasOwner) node.params.owner = defaultOwner();
+  if (def.hasBits) node.params.bits = stage.rsaBits[0];
+  graph.nodes.push(node);
+  renderNodes();
+  onGraphChanged();
+  return node;
+}
+
+// from: { node, port, type } / toEl: 入力ポートの要素
+function isCompatible(from, toEl) {
+  return Boolean(
+    toEl &&
+      toEl.dataset.dir === 'in' &&
+      toEl.dataset.node !== from.node &&
+      typesCompatible(from.type, toEl.dataset.type)
+  );
+}
+
+function connect(from, toEl) {
+  const to = { node: toEl.dataset.node, port: toEl.dataset.port };
+  const port = getPortDef(to.node, to.port, 'in');
+  if (!port) return;
+
+  if (port.multi) {
+    // データの入口には、何本でもつなげる（まとめて1つの荷物になる）
+    const dup = graph.edges.some(
+      (e) =>
+        e.from.node === from.node && e.from.port === from.port && e.to.node === to.node && e.to.port === to.port
+    );
+    if (dup) return;
+  } else {
+    // 鍵の入口につながる線は1本だけ。つなぎ直したら置き換える。
+    graph.edges = graph.edges.filter((e) => !(e.to.node === to.node && e.to.port === to.port));
+  }
+  graph.edges.push({
+    id: nextId('edge'),
+    type: from.type,
+    from: { node: from.node, port: from.port },
+    to,
+  });
+  renderEdges();
+  onGraphChanged();
+}
+
+/* ==========================================================
+   描画: ノード
+   ========================================================== */
+
+function renderNodes() {
+  clearPending();
+  dom.world.querySelectorAll('.node').forEach((n) => n.remove());
+  graph.nodes.forEach((node) => dom.world.append(createNodeEl(node)));
+  refreshEveCaps();
+  renderEdges();
+}
+
+function createSelect(node, param, options, ariaLabel) {
+  const select = el('select', 'node-algo');
+  select.setAttribute('aria-label', ariaLabel);
+  options.forEach(([value, label]) => {
+    const opt = el('option', null, label);
+    opt.value = String(value);
+    opt.selected = String(node.params[param]) === String(value);
+    select.append(opt);
+  });
+  select.addEventListener('change', () => {
+    node.params[param] = param === 'bits' ? Number(select.value) : select.value;
+    onGraphChanged();
+  });
+  return select;
+}
+
+function createNodeEl(node) {
+  const def = COMPONENTS[node.type];
+
+  const root = el('div', `node node-${node.type}`);
+  root.dataset.id = node.id;
+  root.style.left = `${node.x}px`;
+  root.style.top = `${node.y}px`;
+  root.setAttribute('role', 'group');
+  root.setAttribute('aria-label', def.label);
+
+  // ヘッダー
+  const head = el('div', 'node-head');
+  if (def.avatar) head.append(el('span', 'node-avatar', def.avatar));
+  head.append(el('span', 'node-title', def.label));
+  if (def.removable !== false) {
+    const remove = el('button', 'node-remove', '×');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', `${def.label}を削除`);
+    remove.addEventListener('click', () => removeNode(node.id));
+    head.append(remove);
+  }
+  root.append(head);
+
+  // 設定（アルゴリズム・鍵の持ち主・鍵の長さ）
+  if (def.hasAlgorithm) {
+    const ids = availableAlgorithms(stage, activeObjective);
+    if (node.params.algorithm && !ids.includes(node.params.algorithm)) ids.push(node.params.algorithm);
+    if (ids.length > 1) {
+      root.append(
+        createSelect(node, 'algorithm', ids.map((id) => [id, algorithmInfo(id).label]), `${def.label}のアルゴリズム`)
+      );
+    } else {
+      root.append(el('span', 'node-algo-fixed', algorithmInfo(node.params.algorithm).label));
+    }
+  }
+  if (def.hasOwner) {
+    root.append(
+      createSelect(node, 'owner', [['alice', 'Aliceの鍵'], ['bob', 'Bobの鍵']], '鍵の持ち主')
+    );
+  }
+  if (def.hasBits) {
+    if (stage.rsaBits.length > 1) {
+      root.append(createSelect(node, 'bits', stage.rsaBits.map((b) => [b, `RSA ${b}ビット`]), '鍵の長さ'));
+    } else {
+      root.append(el('span', 'node-algo-fixed', `RSA ${node.params.bits}ビット`));
+    }
+  }
+
+  if (node.type === 'channel') {
+    buildChannelBody(root, node);
+  } else {
+    def.inputs.forEach((port) => root.append(createPortRow(node, port, 'in')));
+    def.outputs.forEach((port) => root.append(createPortRow(node, port, 'out')));
+    if (node.type !== 'key' && node.type !== 'keypair') root.append(createPacketChip());
+  }
+
+  // ドラッグ移動
+  root.addEventListener('pointerdown', (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (e.target.closest('.port, select, .node-remove')) return;
+    startNodeDrag(e, node, root);
+  });
+
+  return root;
+}
+
+function stageChecksMetadata() {
+  return objectiveKeys(stage).some((k) => (stage.objectives[k].require ?? []).includes('metadata'));
+}
+
+// 通信路: 中を流れるデータと、攻撃者の「盗む → 解析する → 攻撃する」を見せる
+function buildChannelBody(root, node) {
+  const def = COMPONENTS.channel;
+
+  const tube = el('div', 'tube');
+  const slot = el('div', 'tube-packet');
+  slot.append(el('span', 'packet-dot'), el('span', 'packet-text', '—'));
+  tube.append(
+    createPortRow(node, def.inputs[0], 'in'),
+    slot,
+    createPortRow(node, def.outputs[0], 'out')
+  );
+  root.append(tube);
+
+  const keys = attackerKeys(stage);
+  if (keys.length === 0) return;
+
+  root.append(el('div', 'tap-line'));
+
+  const box = el('div', 'eve-box');
+  const head = el('div', 'eve-head');
+  keys.forEach((k) => head.append(el('span', `badge ${ATTACKERS[k].className}`, ATTACKERS[k].label)));
+  head.append(el('span', 'eve-caps'));
+  box.append(head);
+
+  box.append(createEveRow('傍受', 'capture'), createEveRow('解析', 'analysis'));
+  if (stageChecksMetadata()) box.append(createEveRow('宛先・アプリ', 'meta'));
+  if (keys.includes('mallory')) {
+    box.append(createEveRow('攻撃', 'attack'), createEveRow('Bob は', 'result'));
+  }
+
+  const copy = el('div', 'eve-copy');
+  copy.hidden = true;
+  copy.append(el('span', 'packet-dot'), el('span', 'packet-text'));
+  box.append(copy);
+  root.append(box);
+}
+
+/* ==========================================================
+   描画: 線
+   ========================================================== */
 
 function renderEdges() {
   if (!dom.edgeLayer) return;
@@ -968,26 +978,14 @@ function renderEdges() {
   });
 }
 
-function drawTempEdge(from, clientX, clientY) {
-  const a = portCenter(from.node, from.port, 'out');
-  if (!a) return;
-  const end = toWorld(clientX, clientY);
-  dom.tempLayer.replaceChildren(svgEl('path', { class: 'edge-temp', d: route(a, end) }));
-}
+/* ==========================================================
+   描画: 部品一覧・凡例・条件パネル
+   ========================================================== */
 
-function clearTempEdge() {
-  dom.tempLayer.replaceChildren();
-}
-
-// --- コンポーネント一覧 ---
 function renderPalette() {
   dom.palette.replaceChildren();
-  stage.components.forEach((type) => {
+  availableComponents(stage, activeObjective).forEach((type) => {
     const def = COMPONENTS[type];
-    if (!def || def.palette === false) {
-      console.warn(`[simulator] 一覧に出せないコンポーネント: ${type}`);
-      return;
-    }
     const btn = el('button', `palette-item palette-${type}`);
     btn.type = 'button';
     btn.append(el('strong', null, def.label), el('span', null, def.desc ?? ''));
@@ -1001,18 +999,31 @@ function renderPalette() {
   });
 }
 
-// --- 凡例（データの色） ---
+// データの色の凡例（いま使える部品に合わせて変わる）
 function renderLegend() {
   dom.legend.replaceChildren();
-  const items = [
-    { label: '元のデータ', color: COLORS.plain },
-    ...stage.algorithms.map((id) => ({
-      label: `暗号文（${algorithmInfo(id).short}）`,
-      color: algorithmInfo(id).color,
-    })),
-    { label: '鍵', color: COLORS.key },
-    { label: '意味のないデータ', color: COLORS.garbled },
-  ];
+  const comps = new Set(availableComponents(stage, activeObjective));
+  const items = [{ label: '元のデータ', color: COLORS.plain }];
+
+  if (comps.has('encrypt')) {
+    availableAlgorithms(stage, activeObjective).forEach((id) => {
+      items.push({ label: `暗号文（${algorithmInfo(id).short}）`, color: algorithmInfo(id).color });
+    });
+  }
+  if (comps.has('pkenc')) items.push({ label: '暗号文（RSA）', color: algorithmInfo('rsa2048').color });
+  if (comps.has('tls')) items.push({ label: 'TLS通信', color: algorithmInfo('tls').color });
+  if (comps.has('vpn')) items.push({ label: 'VPN通信', color: algorithmInfo('vpn').color });
+
+  items.push({ label: '共通鍵', color: COLORS.key });
+  if (comps.has('keypair')) {
+    items.push({ label: '公開鍵', color: COLORS.pub }, { label: '秘密鍵', color: COLORS.priv });
+  }
+  if (['hash', 'mac', 'sign', 'ca'].some((t) => comps.has(t))) {
+    items.push({ label: 'ハッシュ・署名・証明書', color: COLORS.auth });
+  }
+  if (attackerKeys(stage).includes('mallory')) items.push({ label: '改ざん・偽造データ', color: COLORS.bad });
+  items.push({ label: '意味のないデータ', color: COLORS.garbled });
+
   items.forEach((item) => {
     const li = el('li');
     const dot = el('span', 'legend-dot');
@@ -1020,12 +1031,6 @@ function renderLegend() {
     li.append(dot, el('span', null, item.label));
     dom.legend.append(li);
   });
-}
-
-// --- ステージの条件パネル ---
-function attackerKeys(s) {
-  const type = String(s.attacker?.type ?? '').toLowerCase();
-  return type.split(/[+,&\s]+/).filter((key) => key in ATTACKERS);
 }
 
 function capText(key, value) {
@@ -1038,18 +1043,37 @@ function capText(key, value) {
       return Array.isArray(value) && value.length > 0 ? value.join('、') : 'なし';
     case 'observationScope':
       return SCOPE_LABELS[value] ?? String(value);
+    case 'attacks':
+      return (value ?? []).map((a) => ATTACKS[a]?.label ?? a).join('・') || 'なし';
+    case 'seesMetadata':
+      return value === false ? '見えない' : '見える';
     default:
       return String(value);
   }
 }
 
-function requirementsText(list) {
-  return (list ?? [])
-    .map((r) => {
-      const info = REQUIREMENTS[r];
-      return info ? `${info.label}（${info.desc}）` : r;
-    })
-    .join('、');
+function describeRules(rules) {
+  const lines = [];
+  (rules.noPreshare ?? []).forEach((k) => {
+    lines.push(
+      k === 'key'
+        ? '共通鍵は、事前には共有できません'
+        : 'Alice の公開鍵は、事前には受け取れません（通信路で届ける）'
+    );
+  });
+  if (rules.largeBody) lines.push('本文が大きいので、公開鍵暗号では直接暗号化できません');
+  if (Array.isArray(rules.onlyComponents)) {
+    lines.push(`使える部品: ${rules.onlyComponents.map((t) => COMPONENTS[t]?.label ?? t).join('・')}だけ`);
+  }
+  return lines;
+}
+
+function describeUnlock(unlock) {
+  const names = [
+    ...(unlock?.components ?? []).map((t) => COMPONENTS[t]?.label ?? t),
+    ...(unlock?.algorithms ?? []).map((a) => algorithmInfo(a).label),
+  ];
+  return names.length ? `この条件でだけ使える新しい部品: ${names.join('・')}` : '';
 }
 
 function renderBrief() {
@@ -1058,6 +1082,16 @@ function renderBrief() {
   $('#stage-title').textContent = title;
   $('#stage-goal').textContent = stage.goal ?? '';
 
+  // このステージで学ぶこと
+  const lessonBox = $('#brief-lesson');
+  const lessonList = $('#lesson-list');
+  lessonList.replaceChildren();
+  (stage.lesson ?? []).forEach((item) => {
+    lessonList.append(el('dt', null, item.label), el('dd', null, item.text));
+  });
+  lessonBox.hidden = !(stage.lesson ?? []).length;
+
+  // 攻撃者
   const badges = $('#attacker-badges');
   badges.replaceChildren();
   attackerKeys(stage).forEach((key) => {
@@ -1071,33 +1105,34 @@ function renderBrief() {
     dl.append(el('dt', null, CAP_LABELS[key] ?? key), el('dd', null, capText(key, value)));
   });
 
+  // クリア条件
   const list = $('#objective-list');
   list.replaceChildren();
-  Object.entries(stage.objectives).forEach(([key, obj]) => {
+  objectiveKeys(stage).forEach((key) => {
+    const obj = stage.objectives[key];
     const li = el('li', 'objective');
     li.append(el('span', 'objective-mark', key));
     const body = el('div');
     body.append(el('p', 'objective-title', requirementsText(obj.require) || '（条件なし）'));
+
     if (obj.attackerOverride) {
       const changes = Object.entries(obj.attackerOverride)
         .map(([k, v]) => `${CAP_LABELS[k] ?? k}が「${capText(k, v)}」`)
         .join('、');
-      body.append(el('p', 'objective-note', `攻撃者が強くなります: ${changes}`));
+      body.append(el('p', 'objective-note', `攻撃者: ${changes}`));
     }
+    describeRules(rulesFor(stage, key)).forEach((line) => body.append(el('p', 'objective-note', line)));
+    const unlock = describeUnlock(obj.unlock);
+    if (unlock) body.append(el('p', 'objective-note objective-unlock', unlock));
+
     li.append(body);
     list.append(li);
   });
 }
 
-function setBriefCollapsed(collapsed) {
-  dom.briefPanel.classList.toggle('is-collapsed', collapsed);
-  dom.briefToggle.setAttribute('aria-expanded', String(!collapsed));
-  dom.briefToggle.textContent = collapsed ? '条件を見る' : '隠す';
-}
-
 // 「どの攻撃者の強さで見るか」の切り替え（Objective が複数あるときだけ）
 function renderObjectiveToggle() {
-  const keys = Object.keys(stage.objectives);
+  const keys = objectiveKeys(stage);
   const box = dom.objectiveToggle;
   box.replaceChildren();
   box.hidden = keys.length < 2;
@@ -1117,365 +1152,40 @@ function renderObjectiveToggle() {
       );
       hideResult();
       clearOutcome();
-      refreshEveCaps();
+      renderPalette(); // この条件で使える部品に切り替える
+      renderLegend();
+      renderNodes();
     });
     box.append(btn);
   });
 }
 
-// 通信路の Eve 欄に、いま見ている攻撃者の計算能力を出す
+// 通信路の攻撃者欄に、いま見ている攻撃者の能力を出す
 function refreshEveCaps() {
-  const text = `計算能力: ${capText('compute', capsFor(activeObjective).compute)}`;
+  const caps = capsFor(stage, activeObjective);
+  const parts = [`計算能力: ${capText('compute', caps.compute)}`];
+  if (attackerKeys(stage).includes('mallory') && (caps.attacks ?? []).length > 0) {
+    parts.push(`攻撃: ${capText('attacks', caps.attacks)}`);
+  }
+  const text = parts.join(' / ');
   dom.board.querySelectorAll('.eve-caps').forEach((n) => { n.textContent = text; });
 }
 
-/* ==========================================================
-   6. 評価
-   ========================================================== */
-
-// --- 6-1. トレース: Alice から出たデータが、線に沿って実際にどう流れるか ---
-function keyOf(node) {
-  const e = graph.edges.find((x) => x.type === KEY && x.to.node === node.id);
-  return e ? e.from.node : null;
-}
-
-function processNode(node, packet) {
-  switch (node.type) {
-    case 'encrypt': {
-      const keyId = keyOf(node);
-      if (!keyId) {
-        return { kind: 'transform', blocked: true, out: null, reason: '鍵がつながっていないので暗号化できません。' };
-      }
-      return {
-        kind: 'transform',
-        out: { ...packet, layers: [...packet.layers, { alg: node.params.algorithm, keyId }] },
-      };
-    }
-    case 'decrypt': {
-      const keyId = keyOf(node);
-      if (!keyId) {
-        return { kind: 'transform', blocked: true, out: null, reason: '鍵がつながっていないので復号できません。' };
-      }
-      const top = packet.layers[packet.layers.length - 1];
-      const ok = !packet.garbled && top && top.alg === node.params.algorithm && top.keyId === keyId;
-      return {
-        kind: 'transform',
-        out: ok
-          ? { ...packet, layers: packet.layers.slice(0, -1) }
-          : { ...packet, layers: [], garbled: true },
-      };
-    }
-    case 'channel':
-      return { kind: 'channel', out: { ...packet, viaChannel: true } };
-    case 'bob':
-      return { kind: 'bob', out: null };
-    default:
-      return { kind: 'other', out: null };
-  }
-}
-
-// step = { edge, node, packet, result, next: [step...] }
-// 1つの出力から線が分かれていれば、next にも枝分かれして入る。
-function buildTrace() {
-  const outEdges = (id) => graph.edges.filter((e) => e.type === DATA && e.from.node === id);
-
-  const visit = (edge, packet, seen) => {
-    const node = findNode(edge.to.node);
-    const step = { edge, node: node.id, packet, result: processNode(node, packet), next: [] };
-    if (step.result.out) {
-      const nextSeen = new Set(seen).add(edge.id); // ぐるぐる回る配線で止まらなくならないように
-      outEdges(node.id).forEach((e) => {
-        if (!nextSeen.has(e.id)) step.next.push(visit(e, step.result.out, nextSeen));
-      });
-    }
-    return step;
-  };
-
-  return outEdges('alice').map((e) => visit(e, newPacket(), new Set()));
-}
-
-function flatten(steps) {
-  return steps.flatMap((s) => [s, ...flatten(s.next)]);
-}
-
-function routeTo(steps, kind) {
-  for (const s of steps) {
-    if (s.result.kind === kind) return [s.node];
-    const sub = routeTo(s.next, kind);
-    if (sub) return [s.node, ...sub];
-  }
-  return null;
-}
-
-// --- 6-2. Eve の様子: 盗めたか → 解読できたか ---
-function canCapture(caps) {
-  return (caps.observationScope ?? 'channel') === 'channel' && (caps.observedMessages ?? 1) > 0;
-}
-
-function notCapturedReason(caps, index) {
-  if ((caps.observationScope ?? 'channel') !== 'channel') {
-    return `Eve は通信路を観測できません（観測範囲: ${capText('observationScope', caps.observationScope)}）`;
-  }
-  if ((caps.observedMessages ?? 1) <= 0) return 'Eve が見られる通信は 0 通です';
-  return `Eve が見られる通信は ${caps.observedMessages} 通までです（${index + 1} 通目は見えません）`;
-}
-
-// 盗んだデータ1つについて、Eve が何をできるか
-function analyzeStolen(packet, caps) {
-  if (packet.garbled) return { state: 'garbled' };
-  if (packet.layers.length === 0) return { state: 'plain' };
-
-  const level = computeInfo(caps.compute).level;
-  // 外側の層から順に破っていく。破れない層に当たったらそこで止まる。
-  const blocker = [...packet.layers]
-    .reverse()
-    .map((l) => ({ ...l, info: algorithmInfo(l.alg) }))
-    .find((l) => l.info.breakLevel > level);
-  return blocker
-    ? { state: 'uncracked', layer: blocker }
-    : { state: 'cracked', layers: packet.layers };
-}
-
-// 通信路を通ったデータすべてについての Eve のレポート（channelSteps と同じ並び）
-function eveReports(channelSteps, caps) {
-  return channelSteps.map((step, i) => {
-    const allowed = canCapture(caps) && i < (caps.observedMessages ?? 1);
-    if (!allowed) return { captured: false, reason: notCapturedReason(caps, i) };
-    return { captured: true, ...analyzeStolen(step.packet, caps) };
-  });
-}
-
-// --- 6-3. 要件ごとの判定 ---
-function checkConfidentiality(channelSteps, caps) {
-  const label = REQUIREMENTS.confidentiality.label;
-  const reports = eveReports(channelSteps, caps);
-  const attacker = computeInfo(caps.compute);
-
-  // ① そもそも盗めていない
-  if (!reports.some((r) => r.captured)) {
-    return {
-      key: 'confidentiality',
-      label,
-      met: true,
-      reason: `Eve はデータを盗めていません。${reports[0]?.reason ?? ''}。`,
-    };
-  }
-
-  // ② 盗まれて、読まれた
-  const leak = reports.find((r) => r.captured && (r.state === 'plain' || r.state === 'cracked'));
-  if (leak) {
-    if (leak.state === 'plain') {
-      return {
-        key: 'confidentiality',
-        label,
-        met: false,
-        reason: 'メッセージが暗号化されないまま通信路に出たため、Eve は盗んだデータをそのまま読めました。',
-      };
-    }
-    const weakest = leak.layers
-      .map((l) => algorithmInfo(l.alg))
-      .sort((a, b) => b.breakLevel - a.breakLevel)[0];
-    return {
-      key: 'confidentiality',
-      label,
-      met: false,
-      reason: `Eve（${attacker.label}）は暗号文を盗み、「${weakest.label}」を解読して中身を読みました。${weakest.weakness}`,
-    };
-  }
-
-  // ③ 盗まれたが、解読できなかった
-  const uncracked = reports.find((r) => r.captured && r.state === 'uncracked');
-  if (uncracked) {
-    return {
-      key: 'confidentiality',
-      label,
-      met: true,
-      reason: `Eve は暗号文を盗めましたが、「${uncracked.layer.info.label}」を解読できませんでした（Eve: ${attacker.label}）。`,
-    };
-  }
-
-  // ④ 盗んだのは意味のないデータだけ
-  return {
-    key: 'confidentiality',
-    label,
-    met: true,
-    reason: 'Eve が盗めたのは、意味のないデータだけでした。',
-  };
-}
-
-function checkRequirement(req, ctx, caps) {
-  if (req === 'confidentiality') return checkConfidentiality(ctx.channelSteps, caps);
-  console.warn(`[simulator] 未対応の要件: ${req}`);
-  return {
-    key: req,
-    label: REQUIREMENTS[req]?.label ?? req,
-    met: false,
-    reason: 'この要件の判定は、まだシミュレータに入っていません。',
-  };
-}
-
-function deliveryCheck(ctx) {
-  const delivered = ctx.bobSteps.some((s) => isReadable(s.packet));
-  let reason = 'Bob は元のメッセージを読めました。';
-  if (!delivered) {
-    const first = ctx.bobSteps[0]?.packet;
-    reason = first?.garbled
-      ? '復号が暗号化と対応していません。アルゴリズム・鍵・順番を確認しましょう。'
-      : 'Bob に届いたメッセージが暗号化されたままです。復号を足しましょう。';
-  }
-  return { key: 'delivery', label: 'Bob にメッセージが届く', met: delivered, reason };
-}
-
-function evaluateObjective(key, obj, ctx) {
-  const caps = capsFor(key);
-  const checks = [deliveryCheck(ctx), ...(obj.require ?? []).map((req) => checkRequirement(req, ctx, caps))];
-  return { met: checks.every((c) => c.met), checks };
-}
-
-// --- 6-4. 余分な部品の数（クリア条件に関係なく置いたものも含む） ---
-function countExtras() {
-  const minimal = stage.rating?.minimalComponents;
-  if (!Array.isArray(minimal)) return 0;
-
-  const need = {};
-  minimal.forEach((t) => { need[t] = (need[t] ?? 0) + 1; });
-
-  const have = {};
-  graph.nodes.forEach((n) => {
-    if (COMPONENTS[n.type].removable === false) return; // Alice・Bob・通信路は数えない
-    have[n.type] = (have[n.type] ?? 0) + 1;
-  });
-
-  return Object.entries(have).reduce(
-    (sum, [type, count]) => sum + Math.max(0, count - (need[type] ?? 0)),
-    0
-  );
-}
-
-// --- 6-5. 評価 ---
-//   A を満たさない                  → C
-//   A だけ満たす                    → B
-//   A・B を満たす（B がなければ A のみ）→ 余分なし S / 余分あり A
-function computeRating(objectives, extras) {
-  const metA = objectives.A ? objectives.A.met : true;
-  const metB = objectives.B ? objectives.B.met : true;
-  if (!metA) return 'C';
-  if (!metB) return 'B';
-  return extras === 0 ? 'S' : 'A';
-}
-
-function describeNode(id) {
-  const node = findNode(id);
-  const base = COMPONENTS[node.type].label;
-  return node.params.algorithm ? `${base}（${algorithmInfo(node.params.algorithm).short}）` : base;
-}
-
-function evaluate() {
-  const trace = buildTrace();
-  const flat = flatten(trace);
-  const channelSteps = flat.filter((s) => s.result.kind === 'channel');
-  const bobSteps = flat.filter((s) => s.result.kind === 'bob');
-  const blockedSteps = flat.filter((s) => s.result.blocked);
-
-  // 通信として成り立っているかの確認
-  const problems = [];
-  if (trace.length === 0) {
-    problems.push('Alice から出ている線がありません。Alice の出口から線を引きましょう。');
-  }
-  const seenReasons = new Set();
-  blockedSteps.forEach((s) => {
-    const msg = `「${COMPONENTS[findNode(s.node).type].label}」: ${s.result.reason}`;
-    if (!seenReasons.has(msg)) {
-      seenReasons.add(msg);
-      problems.push(msg);
-    }
-  });
-  if (trace.length > 0 && blockedSteps.length === 0) {
-    if (channelSteps.length === 0) {
-      problems.push('通信が「通信路」を通っていません。Alice から Bob へ送る道の途中に通信路を入れましょう。');
-    } else if (bobSteps.length === 0) {
-      problems.push('メッセージが Bob に届いていません。Bob の入口まで線をつなぎましょう。');
-    } else if (bobSteps.some((s) => !s.packet.viaChannel)) {
-      problems.push('通信路を通らずに Bob へ届く線があります。Alice と Bob の通信は通信路を通ります。');
-    }
-  }
-
-  const base = { trace, flat, channelSteps, bobSteps };
-  if (problems.length > 0) return { ...base, status: 'incomplete', problems };
-
-  const ctx = { channelSteps, bobSteps };
-  const objectives = {};
-  Object.entries(stage.objectives).forEach(([key, obj]) => {
-    objectives[key] = evaluateObjective(key, obj, ctx);
-  });
-
-  const extras = countExtras();
-  const route = routeTo(trace, 'bob') ?? [];
-  return {
-    ...base,
-    status: 'done',
-    flow: ['alice', ...route].map(describeNode),
-    objectives,
-    extras,
-    rating: computeRating(objectives, extras),
-    cleared: objectives.A ? objectives.A.met : true,
-  };
-}
 
 /* ==========================================================
-   7. アニメーション
+   アニメーション
    ========================================================== */
-// 評価で作ったトレースを、線の上を電気が流れる様子として再生する。
-//   ・元のデータはオレンジ、暗号化されたデータは方式ごとの色
+// engine.js が求めた「流れ」を、線の上を電気が流れる様子として再生する。
+//   ・元のデータはオレンジ、暗号化されたデータは方式ごとの色、鍵は紫、改ざんされたものは赤
+//   ・部品は、入ってくる線がすべて着いてから動く（鍵と本文の両方が必要な暗号化など）
 //   ・出力が枝分かれしていれば、並行して流れる
-//   ・通信路の中では、Eve が「盗む → 解析する」様子を見せる
-
-const SPEED = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.15 : 1;
-const sim = { running: false, skipped: false, jobs: new Set() };
-
-// 時間経過つきの処理。skip されたら最後の状態まで一気に進む。
-function runTween(duration, onFrame) {
-  return new Promise((resolve) => {
-    if (sim.skipped || duration <= 0) {
-      onFrame(1);
-      resolve();
-      return;
-    }
-    const t0 = performance.now();
-    const job = {
-      finish() {
-        onFrame(1);
-        resolve();
-      },
-    };
-    sim.jobs.add(job);
-    const tick = (now) => {
-      if (!sim.jobs.has(job)) return;
-      const p = Math.min(1, (now - t0) / duration);
-      onFrame(p);
-      if (p >= 1) {
-        sim.jobs.delete(job);
-        resolve();
-      } else {
-        requestAnimationFrame(tick);
-      }
-    };
-    requestAnimationFrame(tick);
-  });
-}
+//   ・通信路の中では、攻撃者が「盗む → 解析する」、Mallory は「攻撃する」様子を見せる
+//   ・Mallory の攻撃は、そのあと1つずつ流し直して見せる
 
 const wait = (ms) => runTween(ms * SPEED, () => {});
 
-function skipSimulation() {
-  sim.skipped = true;
-  [...sim.jobs].forEach((job) => {
-    sim.jobs.delete(job);
-    job.finish();
-  });
-}
-
 // 線に沿って電気を伸ばす
-function drawEdge(edge, color) {
+function drawEdge(edge, color, factor = 1) {
   const info = edgeEls.get(edge.id);
   if (!info) return Promise.resolve();
 
@@ -1491,7 +1201,7 @@ function drawEdge(edge, color) {
   spark.style.filter = `drop-shadow(0 0 4px ${color})`;
   dom.sparkLayer.append(spark);
 
-  const duration = clamp(len / 0.3, 500, 1800) * SPEED;
+  const duration = clamp(len / 0.3, 500, 1800) * factor * SPEED;
   return runTween(duration, (p) => {
     energy.style.strokeDashoffset = `${len * (1 - p)}`;
     const pt = line.getPointAtLength(len * p);
@@ -1505,148 +1215,273 @@ function drawEdge(edge, color) {
 }
 
 // ノードの下に「いま持っているデータ」を出す
-function setNodeChip(nodeId, { packet, text, color }) {
+function setNodeChip(nodeId, { text, color, title }) {
   const chip = nodeElOf(nodeId)?.querySelector('.node-packet');
   if (!chip) return;
   chip.hidden = false;
-  chip.style.setProperty('--chip', color ?? packetColor(packet));
-  chip.querySelector('.packet-text').textContent = text ?? packetText(packet);
-  if (packet) chip.title = packetKindLabel(packet);
+  chip.style.setProperty('--chip', color ?? COLORS.garbled);
+  chip.querySelector('.packet-text').textContent = text;
+  if (title) chip.title = title;
+  else chip.removeAttribute('title');
 }
 
-function setTube(nodeEl, packet) {
+function setTube(nodeEl, bundle) {
   const slot = nodeEl.querySelector('.tube-packet');
-  slot.style.setProperty('--chip', packetColor(packet));
-  slot.querySelector('.packet-text').textContent = packetText(packet);
-  slot.title = packetKindLabel(packet);
+  slot.style.setProperty('--chip', bundleColor(bundle));
+  slot.querySelector('.packet-text').textContent = bundleText(bundle);
 }
 
-function setEveRow(nodeEl, row, text, tone) {
+function setRow(nodeEl, row, text, tone) {
   const value = nodeEl.querySelector(`.eve-row[data-row="${row}"] .eve-value`);
   if (!value) return;
   value.textContent = text;
   value.className = `eve-value${tone ? ` tone-${tone}` : ''}`;
 }
 
-// 通信路を通ったデータに対する Eve の動き（通信が先へ進むのと並行して見せる）
-async function playEve(nodeEl, step, report) {
+const algNames = (algs) => algs.map((a) => algorithmInfo(a).short).join('・');
+
+// 通信路で盗んだものを、攻撃者がどこまで読めたか（通信が先へ進むのと並行して見せる）
+async function playObserver(nodeEl, obj, bundle) {
   const tap = nodeEl.querySelector('.tap-line');
-  if (!tap) return; // Eve がいないステージ
+  if (!tap) return;
+  const x = obj.exposure;
   const copy = nodeEl.querySelector('.eve-copy');
 
-  setEveRow(nodeEl, 'capture', '傍受中…', 'work');
-  setEveRow(nodeEl, 'analysis', '待機中', null);
+  setRow(nodeEl, 'capture', '傍受中…', 'work');
+  setRow(nodeEl, 'analysis', '待機中', null);
   copy.hidden = true;
   await wait(450);
 
   // ① 盗めたか
-  if (!report.captured) {
-    setEveRow(nodeEl, 'capture', '盗めない', 'good');
-    setEveRow(nodeEl, 'analysis', report.reason, null);
+  if (!x.captured) {
+    setRow(nodeEl, 'capture', '盗めない', 'good');
+    setRow(nodeEl, 'analysis', '—', null);
+    setRow(nodeEl, 'meta', '見えない', 'good');
     return;
   }
-  tap.style.background = packetColor(step.packet);
-  setEveRow(nodeEl, 'capture', '盗んだ！', 'work');
+  tap.style.background = bundleColor(bundle);
+  setRow(nodeEl, 'capture', '盗んだ！', 'work');
   copy.hidden = false;
-  copy.style.setProperty('--chip', packetColor(step.packet));
-  copy.querySelector('.packet-text').textContent = packetText(step.packet);
-  await wait(600);
+  copy.style.setProperty('--chip', bundleColor(bundle));
+  copy.querySelector('.packet-text').textContent = bundleText(bundle);
+  await wait(500);
+
+  // 宛先・アプリ（ヘッダーは暗号化されない）
+  if (x.meta) {
+    setRow(
+      nodeEl,
+      'meta',
+      x.metaReveals ? `${x.meta.dest} / ${x.meta.app} が見える` : '本当の宛先は見えない',
+      x.metaReveals ? 'bad' : 'good'
+    );
+  }
 
   // ② 解析できたか
-  switch (report.state) {
-    case 'plain':
-      setEveRow(nodeEl, 'analysis', 'そのまま読めた', 'bad');
-      break;
-    case 'garbled':
-      setEveRow(nodeEl, 'analysis', '意味のないデータ', 'good');
-      break;
-    case 'uncracked':
-      setEveRow(nodeEl, 'analysis', `${report.layer.info.short} を解読中…`, 'work');
+  if (x.msgRead) {
+    if (x.how === 'plain') {
+      setRow(nodeEl, 'analysis', 'そのまま読めた', 'bad');
+    } else if (x.how === 'keyleak') {
+      setRow(nodeEl, 'analysis', '流れていた鍵で開けた！', 'bad');
+    } else {
+      setRow(nodeEl, 'analysis', `${algNames(x.crackedAlgs)} を解読中…`, 'work');
       await wait(1000);
-      setEveRow(nodeEl, 'analysis', '解読できない', 'good');
-      break;
-    case 'cracked': {
-      const names = report.layers.map((l) => algorithmInfo(l.alg).short).join('・');
-      setEveRow(nodeEl, 'analysis', `${names} を解読中…`, 'work');
-      await wait(1000);
-      setEveRow(nodeEl, 'analysis', '解読できた！', 'bad');
-      copy.style.setProperty('--chip', COLORS.plain);
-      copy.querySelector('.packet-text').textContent = stageMessage();
-      break;
+      setRow(nodeEl, 'analysis', '解読できた！', 'bad');
     }
-    default:
-      break;
+    copy.style.setProperty('--chip', COLORS.plain);
+    copy.querySelector('.packet-text').textContent = stageMessage(stage);
+  } else if (x.blocker) {
+    const name = algorithmInfo(x.blocker.t === 'enc' ? x.blocker.alg : x.blocker.t).short;
+    setRow(nodeEl, 'analysis', `${name} を解読中…`, 'work');
+    await wait(1000);
+    setRow(nodeEl, 'analysis', '解読できない', 'good');
+  } else {
+    setRow(nodeEl, 'analysis', '読める本文がない', 'good');
   }
 }
 
-// 線を伸ばし、着いたノードで処理し、枝分かれ先へ進む
-async function playStep(step, eveMap) {
-  await drawEdge(step.edge, packetColor(step.packet));
+const ATTACK_DEEDS = {
+  tamper: '通信の途中で、データを書き換えた',
+  forge: '偽のメッセージを作って送った',
+  keyswap: '公開鍵を、自分のものに差し替えた',
+  replay: '過去の通信を、そのまま再送した',
+};
 
-  const nodeEl = nodeElOf(step.node);
-  const r = step.result;
-  let sideTask = Promise.resolve();
+// Mallory の攻撃（通信路を通るデータを書き換えて、先へ流す）
+async function playMallory(nodeEl, flow, ctx, tw) {
+  const name = ctx.attack.name;
+  setRow(nodeEl, 'attack', ATTACKS[name].label, 'bad');
+  setRow(nodeEl, 'result', '…', 'work');
+  await tw(350);
+  setTube(nodeEl, flow.channelOut);
+  const tap = nodeEl.querySelector('.tap-line');
+  if (tap) tap.style.background = COLORS.bad;
+  const copy = nodeEl.querySelector('.eve-copy');
+  if (copy) {
+    copy.hidden = false;
+    copy.style.setProperty('--chip', COLORS.bad);
+    copy.querySelector('.packet-text').textContent = ATTACK_DEEDS[name];
+  }
+  await tw(450);
+}
 
-  if (r.kind === 'transform') {
-    nodeEl.classList.add('is-active');
-    await wait(450);
-    nodeEl.classList.remove('is-active');
-    if (r.blocked) {
+function setMalloryResult(nodeEl, a, graphRef) {
+  const b = a.flow.bob;
+  if (a.outcome === 'bad') {
+    const what = b.replayed && b.msg?.v === 'orig' ? '古い通信' : BAD_LABELS[b.msg?.v] ?? 'おかしなデータ';
+    setRow(nodeEl, 'result', `${what}を受け入れた…`, 'bad');
+  } else if (a.outcome === 'rejected') {
+    const r = a.flow.rejects[0];
+    const node = graphRef.nodes.find((n) => n.id === r.node);
+    setRow(nodeEl, 'result', `「${COMPONENTS[node.type].label}」で見抜いた！`, 'good');
+  } else if (a.outcome === 'ok') {
+    setRow(nodeEl, 'result', '影響なし', 'good');
+  } else {
+    setRow(nodeEl, 'result', '届かなかった', 'good');
+  }
+}
+
+function mainOutput(flow, id) {
+  const outs = flow.outputs?.get(id) ?? {};
+  const def = COMPONENTS[findNode(id).type];
+  for (const p of def.outputs) if (outs[p.id]) return outs[p.id];
+  return null;
+}
+
+const hasEdges = (id) => graph.edges.some((e) => e.from.node === id || e.to.node === id);
+
+// 1回分の流れ（本物の通信 / Mallory の攻撃ごと）を再生する
+async function playFlow(flow, ctx) {
+  const tw = (ms) => wait(ctx.attack ? ms * 0.5 : ms);
+  const factor = ctx.attack ? 0.55 : 1;
+  const nodeP = new Map();
+  const edgeP = new Map();
+  const side = []; // 通信と並行して進む動き（攻撃者の解析など）
+
+  const intoNode = (id) => graph.edges.filter((e) => e.to.node === id);
+
+  function playNode(id) {
+    if (nodeP.has(id)) return nodeP.get(id);
+    nodeP.set(id, Promise.resolve()); // 配線がぐるぐる回っていても止まらないように
+    const p = (async () => {
+      await Promise.all(intoNode(id).map(playEdge));
+      await visit(id);
+    })();
+    nodeP.set(id, p);
+    return p;
+  }
+
+  function playEdge(e) {
+    if (edgeP.has(e.id)) return edgeP.get(e.id);
+    const p = (async () => {
+      await playNode(e.from.node);
+      const v = flow.edgeValues.get(e.id);
+      if (v) await drawEdge(e, valueColor(v), factor);
+    })();
+    edgeP.set(e.id, p);
+    return p;
+  }
+
+  async function visit(id) {
+    const node = findNode(id);
+    const nodeEl = nodeElOf(id);
+    if (!node || !nodeEl) return;
+    const st = flow.info.get(id) ?? { status: 'ok', note: '' };
+
+    switch (node.type) {
+      case 'alice': {
+        nodeEl.classList.add('is-active');
+        const out = mainOutput(flow, id);
+        if (out) setNodeChip(id, { text: bundleText(out), color: valueColor(out) });
+        await tw(500);
+        nodeEl.classList.remove('is-active');
+        return;
+      }
+      case 'key':
+      case 'keypair':
+        return;
+      case 'channel': {
+        if (st.status !== 'ok') return;
+        setTube(nodeEl, flow.channelIn);
+        nodeEl.classList.add('is-active');
+        if (ctx.honest && ctx.obj.exposure) side.push(playObserver(nodeEl, ctx.obj, flow.channelIn));
+        if (ctx.attack) await playMallory(nodeEl, flow, ctx, tw);
+        else await tw(500);
+        nodeEl.classList.remove('is-active');
+        return;
+      }
+      case 'bob': {
+        const b = flow.bob;
+        if (b.status === 'none') return;
+        const bad = !b.msg || b.msg.v !== 'orig' || b.replayed;
+        const text = b.msg ? `${b.msg.text}${b.replayed ? '（再送）' : ''}` : bundleText(b.bundle);
+        setNodeChip(id, { text, color: bad ? COLORS.bad : COLORS.plain });
+        nodeEl.classList.add(bad ? 'is-garbled' : 'is-received');
+        await tw(300);
+        return;
+      }
+      default:
+        break;
+    }
+
+    // 暗号化・復号・ハッシュ・署名など
+    if (st.status === 'ok' || st.status === 'reject') {
+      nodeEl.classList.add('is-active');
+      await tw(450);
+      nodeEl.classList.remove('is-active');
+      if (st.status === 'reject') {
+        nodeEl.classList.add('is-blocked');
+        setNodeChip(id, { text: '見抜いた！', color: COLORS.bad, title: st.note });
+        await tw(300);
+      } else {
+        const v = mainOutput(flow, id);
+        if (v) setNodeChip(id, { text: valueText(v), color: valueColor(v) });
+        await tw(250);
+      }
+    } else if (st.status === 'blocked' && hasEdges(id)) {
       nodeEl.classList.add('is-blocked');
-      setNodeChip(step.node, { text: '鍵がない！', color: '#ee5f78' });
-      return;
+      setNodeChip(id, { text: '動けない', color: COLORS.bad, title: st.note });
     }
-    setNodeChip(step.node, { packet: r.out });
-    await wait(250);
-  } else if (r.kind === 'channel') {
-    setTube(nodeEl, step.packet);
-    nodeEl.classList.add('is-active');
-    sideTask = playEve(nodeEl, step, eveMap.get(step) ?? { captured: false, reason: '' });
-    await wait(500);
-    nodeEl.classList.remove('is-active');
-  } else if (r.kind === 'bob') {
-    const readable = isReadable(step.packet);
-    setNodeChip(step.node, { packet: step.packet });
-    nodeEl.classList.add(readable ? 'is-received' : 'is-garbled');
-    await wait(300);
-    return;
   }
 
-  await Promise.all([sideTask, ...step.next.map((s) => playStep(s, eveMap))]);
+  await Promise.all(graph.nodes.map((n) => playNode(n.id)));
+  await Promise.all(side);
+  await tw(300);
 }
 
-async function playTrace(res, eveMap) {
-  // Alice が元のデータを送り出す
-  const alice = nodeElOf('alice');
-  alice?.classList.add('is-active');
-  setNodeChip('alice', { packet: newPacket() });
-  await wait(500);
-  alice?.classList.remove('is-active');
+async function playRun(obj) {
+  await playFlow(obj.honest, { honest: true, obj });
+  if (obj.status !== 'done' || obj.attacks.length === 0) return;
 
-  // 鍵の線にも電気を通す（鍵は事前に共有してある想定）
-  const keyJobs = graph.edges.filter((e) => e.type === KEY).map((e) => drawEdge(e, COLORS.key));
-
-  // 元のデータが流れ出す（出口から線が分かれていれば、並行して進む）
-  await Promise.all([...keyJobs, ...res.trace.map((s) => playStep(s, eveMap))]);
-  await wait(300);
+  const channelEl = dom.board.querySelector('.node-channel');
+  for (const a of obj.attacks) {
+    await wait(600);
+    clearFlowVisuals();
+    await playFlow(a.flow, { attack: a, obj });
+    if (channelEl) setMalloryResult(channelEl, a, graph);
+    await wait(500);
+  }
 }
 
-// 前回のシミュレーション結果の表示を消す
-function clearOutcome() {
+// 電気・ノードの状態・ノードの下のデータ表示を消す（攻撃者の欄はそのまま）
+function clearFlowVisuals() {
   energyState.clear();
   dom.sparkLayer.replaceChildren();
   renderEdges();
-
   dom.board.querySelectorAll('.node').forEach((n) => {
-    n.classList.remove('is-active', 'is-blocked', 'is-received', 'is-garbled', 'is-breached', 'is-safe');
+    n.classList.remove('is-active', 'is-blocked', 'is-received', 'is-garbled');
   });
   dom.board.querySelectorAll('.node-packet').forEach((c) => { c.hidden = true; });
+}
+
+// 前回のシミュレーション結果の表示をすべて消す
+function clearOutcome() {
+  clearFlowVisuals();
+  dom.board.querySelectorAll('.node').forEach((n) => n.classList.remove('is-breached', 'is-safe'));
 
   dom.board.querySelectorAll('.node-channel').forEach((ch) => {
     const slot = ch.querySelector('.tube-packet');
     slot.style.removeProperty('--chip');
     slot.querySelector('.packet-text').textContent = '—';
-    slot.removeAttribute('title');
     const tap = ch.querySelector('.tap-line');
     if (tap) tap.style.background = '';
     ch.querySelectorAll('.eve-row .eve-value').forEach((v) => {
@@ -1658,13 +1493,10 @@ function clearOutcome() {
   });
 }
 
-function markOutcome(res) {
+function markOutcome(obj) {
   const ch = dom.board.querySelector('.node-channel');
-  if (!ch || res.status !== 'done') return;
-  const obj = res.objectives[activeObjective] ?? res.objectives.A;
-  const breached = obj
-    ? obj.checks.some((c) => c.key === 'confidentiality' && !c.met)
-    : false;
+  if (!ch || obj.status !== 'done') return;
+  const breached = obj.checks.some((c) => c.key !== 'delivery' && !c.met);
   ch.classList.add(breached ? 'is-breached' : 'is-safe');
 }
 
@@ -1683,53 +1515,23 @@ async function runSimulation() {
   sim.skipped = false;
 
   const ranKey = activeObjective; // 実行中に切り替えられても、この結果は実行した攻撃者のもの
-  const res = evaluate();
-  const eveMap = new Map();
-  const reports = eveReports(res.channelSteps, capsFor(activeObjective));
-  res.channelSteps.forEach((step, i) => eveMap.set(step, reports[i]));
+  const res = evaluateStage(stage, graph);
+  const obj = res.objectives[ranKey];
 
   setSimulating(true);
   try {
-    await playTrace(res, eveMap);
+    await playRun(obj);
   } finally {
     setSimulating(false);
   }
 
-  markOutcome(res);
+  markOutcome(obj);
   showResult(res, ranKey);
 }
 
 /* ==========================================================
-   8. 結果表示
+   結果表示
    ========================================================== */
-
-const RATING_ORDER = { C: 0, B: 1, A: 2, S: 3 };
-
-function saveProgress(id, rating) {
-  try {
-    const raw = localStorage.getItem(PROGRESS_KEY);
-    const data = raw ? JSON.parse(raw) : {};
-    const prev = data[id]?.rating;
-    if (!prev || RATING_ORDER[rating] > RATING_ORDER[prev]) {
-      data[id] = { rating };
-      localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
-    }
-  } catch (err) {
-    console.warn('[simulator] 進捗を保存できませんでした', err);
-  }
-}
-
-let briefRestore = null; // 結果を出す前に条件パネルが開いていたか
-
-function hideResult() {
-  dom.result.hidden = true;
-  dom.result.replaceChildren();
-  dom.editor.classList.remove('has-result');
-  if (briefRestore !== null) {
-    setBriefCollapsed(!briefRestore);
-    briefRestore = null;
-  }
-}
 
 function showResult(res, key = activeObjective) {
   const box = dom.result;
@@ -1745,30 +1547,31 @@ function showResult(res, key = activeObjective) {
   close.setAttribute('aria-label', '結果を閉じる');
   close.addEventListener('click', hideResult);
 
-  if (res.status === 'incomplete') {
+  const obj = res.objectives[key];
+
+  if (obj.status === 'incomplete') {
     box.classList.add('is-incomplete');
     const head = el('div', 'result-head');
-    head.append(el('h2', 'result-title', '通信がまだ完成していません'), close);
+    head.append(el('h2', 'result-title', '通信に問題があります'), close);
     box.append(head);
 
     const ul = el('ul', 'result-problems');
-    res.problems.forEach((p) => ul.append(el('li', null, p)));
+    obj.problems.forEach((p) => ul.append(el('li', null, p)));
     box.append(ul, createActions(false));
     revealResult();
     return;
   }
 
   // 試した攻撃者（Objective）の結果だけを出す。A で試しているときに B は出さない。
-  const keys = Object.keys(stage.objectives);
+  const keys = objectiveKeys(stage);
   const isFinal = key === keys[keys.length - 1]; // いちばん強い攻撃者で試しているか
-  const shown = res.objectives[key];
   const allMet = Object.values(res.objectives).every((o) => o.met);
   // 守りの要件（機密性など）が破られたか、それとも Bob に届かなかっただけか
-  const breached = shown.checks.some((c) => c.key !== 'delivery' && !c.met);
-  box.classList.add(shown.met ? 'is-safe' : 'is-broken');
+  const breached = obj.checks.some((c) => c.key !== 'delivery' && !c.met);
+  box.classList.add(obj.met ? 'is-safe' : 'is-broken');
 
   let title = `Objective ${key} クリア！`;
-  if (!shown.met) title = breached ? '💥 突破された！' : 'メッセージがうまく届いていません';
+  if (!obj.met) title = breached ? '💥 突破された！' : 'メッセージがうまく届いていません';
   else if (isFinal && allMet) title = '守り切った！';
 
   const head = el('div', 'result-head');
@@ -1783,16 +1586,16 @@ function showResult(res, key = activeObjective) {
   box.append(head);
 
   // 組んだ通信の流れ
-  box.append(el('p', 'result-flow', res.flow.join('  →  ')));
+  if (res.flow.length) box.append(el('p', 'result-flow', res.flow.join('  →  ')));
 
   // 試した Objective の結果
   const grid = el('div', 'result-objectives');
-  const card = el('div', `result-objective ${shown.met ? 'is-met' : 'is-unmet'}`);
+  const card = el('div', `result-objective ${obj.met ? 'is-met' : 'is-unmet'}`);
   const h3 = el('h3');
-  h3.append(el('span', null, `Objective ${key}`), el('span', null, shown.met ? '達成' : '未達成'));
+  h3.append(el('span', null, `Objective ${key}`), el('span', null, obj.met ? '達成' : '未達成'));
   card.append(h3);
   const list = el('div', 'check-list');
-  shown.checks.forEach((c) => {
+  obj.checks.forEach((c) => {
     const item = el('div', `check-item ${c.met ? 'is-met' : 'is-unmet'}`);
     item.append(el('strong', null, c.label), el('p', null, c.reason));
     list.append(item);
@@ -1801,13 +1604,25 @@ function showResult(res, key = activeObjective) {
   grid.append(card);
   box.append(grid);
 
-  if (shown.met && !isFinal) {
+  // Mallory の攻撃のようす（評価の対象でないものも含めて、参考として見せる）
+  if (obj.attacks.length > 0) {
+    const info = el('div', 'attack-info');
+    info.append(el('h4', null, 'Mallory の攻撃のようす'));
+    const ul = el('ul', 'attack-list');
+    obj.attacks.forEach((a) => {
+      ul.append(el('li', `attack-item ${a.outcome === 'bad' ? 'is-bad' : 'is-good'}`, a.text));
+    });
+    info.append(ul);
+    box.append(info);
+  }
+
+  if (obj.met && !isFinal) {
     // 次の（もっと強い）攻撃者がいることだけ伝える。結果は見せない。
     const nextKey = keys[keys.indexOf(key) + 1];
     box.append(
-      el('p', 'result-note', `右上の「攻撃者」を ${nextKey} に切り替えて、もっと強い攻撃者に挑戦しよう。`)
+      el('p', 'result-note', `右上の「攻撃者」を ${nextKey} に切り替えて、もっと強い条件に挑戦しよう。`)
     );
-  } else if (shown.met && isFinal && allMet) {
+  } else if (obj.met && isFinal && allMet) {
     // 無駄の指摘
     box.append(
       el(
@@ -1827,53 +1642,9 @@ function showResult(res, key = activeObjective) {
   revealResult();
 }
 
-function createActions(cleared) {
-  const actions = el('div', 'result-actions');
-
-  const retry = el('button', 'button button-secondary', 'もう一度つくる');
-  retry.type = 'button';
-  retry.addEventListener('click', hideResult);
-  actions.append(retry);
-
-  const idx = STAGE_IDS.indexOf(stage.id);
-  const nextId = idx >= 0 ? STAGE_IDS[idx + 1] : null;
-  if (cleared && nextId) {
-    const next = el('a', 'button button-primary', '次のステージへ');
-    next.href = `simulator.html?stage=${encodeURIComponent(nextId)}`;
-    actions.append(next);
-  }
-
-  const back = el('a', 'button button-secondary', 'ステージ一覧へ');
-  back.href = 'index.html#stage-section';
-  actions.append(back);
-
-  return actions;
-}
-
-function revealResult() {
-  dom.result.scrollTop = 0;
-  dom.result.focus({ preventScroll: true });
-}
-
 /* ==========================================================
-   9. 起動
+   起動
    ========================================================== */
-
-function showStatus(message, isError = false) {
-  dom.status.textContent = message;
-  dom.status.hidden = false;
-  dom.status.classList.toggle('is-error', isError);
-}
-
-function resetBoard() {
-  seq = 0;
-  energyState.clear();
-  resetView();
-  graph = initialGraph();
-  renderNodes();
-  hideResult();
-  clearOutcome();
-}
 
 function normalizeStage(raw) {
   return {
@@ -1881,6 +1652,8 @@ function normalizeStage(raw) {
     components: Array.isArray(raw.components) ? raw.components : [],
     algorithms:
       Array.isArray(raw.algorithms) && raw.algorithms.length > 0 ? raw.algorithms : ['caesar'],
+    rsaBits: Array.isArray(raw.rsaBits) && raw.rsaBits.length > 0 ? raw.rsaBits : [2048],
+    defaults: raw.defaults ?? {},
     objectives:
       raw.objectives && Object.keys(raw.objectives).length > 0
         ? raw.objectives
@@ -1922,7 +1695,7 @@ async function init() {
     return;
   }
 
-  activeObjective = Object.keys(stage.objectives)[0];
+  activeObjective = objectiveKeys(stage)[0];
 
   // 線を描く SVG のレイヤー（確定した線 / つなぎ途中の線 / 電気の先頭の光）
   const svg = $('#edges');
@@ -1957,6 +1730,7 @@ async function init() {
   $('#zoom-out').addEventListener('click', () => zoomByButton(1 / 1.25));
   $('#zoom-label').addEventListener('click', resetView);
   $('#zoom-fit').addEventListener('click', fitView);
+
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') clearPending();
   });
