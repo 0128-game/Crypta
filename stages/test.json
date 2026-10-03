@@ -11,16 +11,35 @@
       "observationScope": "channel"
     }
   },
-  "components": ["encrypt", "decrypt", "key"],
-  "algorithms": ["caesar", "aes"],
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt"
+  ],
+  "algorithms": [
+    "caesar",
+    "aes"
+  ],
   "objectives": {
-    "A": { "require": ["confidentiality"] },
+    "A": {
+      "require": [
+        "confidentiality"
+      ]
+    },
     "B": {
-      "require": ["confidentiality"],
-      "attackerOverride": { "compute": "human" }
+      "require": [
+        "confidentiality"
+      ],
+      "attackerOverride": {
+        "compute": "bruteforce"
+      }
     }
   },
   "rating": {
-    "minimalComponents": ["encrypt", "decrypt", "key"]
+    "minimalComponents": [
+      "key",
+      "encrypt",
+      "decrypt"
+    ]
   }
 }
