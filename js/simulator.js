@@ -146,6 +146,7 @@ let graph = { nodes: [], edges: [] };
 let seq = 0;
 let pending = null;          // タップでつなぐ途中の出力ポート { node, port, type }
 let activeObjective = 'A';   // 攻撃者の強さをどの Objective で見るか
+let pan = { x: 0, y: 0 };    // キャンバスを動かした量（ドラッグで動かせる）
 
 const dom = {};
 const edgeEls = new Map();    // edgeId → { line, energy, len }
@@ -173,6 +174,17 @@ function clamp(value, min, max) {
 function nextId(prefix) {
   seq += 1;
   return `${prefix}${seq}`;
+}
+
+// ノードの座標は「キャンバス上の位置」で持つ。画面上の位置との変換は worldRect() を基準にする。
+function worldRect() {
+  return dom.world.getBoundingClientRect();
+}
+
+function applyPan() {
+  dom.world.style.transform = `translate(${pan.x}px, ${pan.y}px)`;
+  dom.board.style.backgroundPosition = `${pan.x}px ${pan.y}px`;
+  if (dom.viewReset) dom.viewReset.hidden = pan.x === 0 && pan.y === 0;
 }
 
 function findNode(id) {
@@ -440,17 +452,15 @@ function togglePendingByKeyboard(from, portEl) {
 // --- ノードのドラッグ移動 ---
 function startNodeDrag(e, node, nodeEl) {
   e.preventDefault();
-  const boardRect = dom.board.getBoundingClientRect();
-  const offX = e.clientX - boardRect.left - node.x;
-  const offY = e.clientY - boardRect.top - node.y;
+  const wr = worldRect();
+  const offX = e.clientX - wr.left - node.x;
+  const offY = e.clientY - wr.top - node.y;
   nodeEl.classList.add('is-dragging');
 
   const onMove = (ev) => {
-    const rect = dom.board.getBoundingClientRect();
-    const maxX = Math.max(0, dom.board.clientWidth - nodeEl.offsetWidth);
-    const maxY = Math.max(0, dom.board.clientHeight - nodeEl.offsetHeight);
-    node.x = clamp(ev.clientX - rect.left - offX, 0, maxX);
-    node.y = clamp(ev.clientY - rect.top - offY, 0, maxY);
+    const rect = worldRect();
+    node.x = ev.clientX - rect.left - offX;
+    node.y = ev.clientY - rect.top - offY;
     nodeEl.style.left = `${node.x}px`;
     nodeEl.style.top = `${node.y}px`;
     renderEdges();
@@ -468,17 +478,38 @@ function startNodeDrag(e, node, nodeEl) {
   window.addEventListener('pointercancel', onUp);
 }
 
-// 画面サイズが変わったとき、はみ出したノードを中に戻す
-function clampAllNodes() {
-  graph.nodes.forEach((node) => {
-    const nodeEl = nodeElOf(node.id);
-    if (!nodeEl) return;
-    node.x = clamp(node.x, 0, Math.max(0, dom.board.clientWidth - nodeEl.offsetWidth));
-    node.y = clamp(node.y, 0, Math.max(0, dom.board.clientHeight - nodeEl.offsetHeight));
-    nodeEl.style.left = `${node.x}px`;
-    nodeEl.style.top = `${node.y}px`;
-  });
-  renderEdges();
+// --- キャンバス自体のドラッグ（何もないところをつかんで動かす） ---
+function startPan(e) {
+  if (e.button !== undefined && e.button !== 0) return;
+  if (e.target !== dom.board && e.target !== dom.world) return;
+
+  const start = { x: e.clientX, y: e.clientY };
+  const origin = { ...pan };
+  let moved = false;
+
+  const onMove = (ev) => {
+    if (!moved && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 4) {
+      moved = true;
+      dom.board.classList.add('is-panning');
+    }
+    if (moved) {
+      pan.x = origin.x + (ev.clientX - start.x);
+      pan.y = origin.y + (ev.clientY - start.y);
+      applyPan();
+    }
+  };
+
+  const onUp = () => {
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    dom.board.classList.remove('is-panning');
+    if (!moved) clearPending(); // ただのクリックなら、つなぎ途中の選択を解除
+  };
+
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
 }
 
 // --- コンポーネント一覧からのドラッグ配置（クリックなら空いている場所に置く） ---
@@ -515,9 +546,8 @@ function startPaletteDrag(e, type, label) {
       ev.clientX >= rect.left && ev.clientX <= rect.right &&
       ev.clientY >= rect.top && ev.clientY <= rect.bottom;
     if (inside) {
-      const x = clamp(ev.clientX - rect.left - 76, 0, Math.max(0, dom.board.clientWidth - 152));
-      const y = clamp(ev.clientY - rect.top - 40, 0, Math.max(0, dom.board.clientHeight - 110));
-      addNode(type, x, y);
+      const wr = worldRect();
+      addNode(type, ev.clientX - wr.left - 76, ev.clientY - wr.top - 40);
     }
   };
 
@@ -526,20 +556,22 @@ function startPaletteDrag(e, type, label) {
   window.addEventListener('pointercancel', onUp);
 }
 
-// 重ねて表示している要素（条件パネルなど）のキャンバス上の位置
+// 重ねて表示している要素（条件パネルなど）の、キャンバス上の位置
 function overlayRect(element) {
   if (!element || !element.offsetParent) return null;
   const r = element.getBoundingClientRect();
-  const b = dom.board.getBoundingClientRect();
-  return { x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height };
+  const w = worldRect();
+  return { x: r.left - w.left, y: r.top - w.top, w: r.width, h: r.height };
 }
 
-// クリック・キーボードで置くときの位置（既存のノードや重ねた要素と重ならない所）
+// クリック・キーボードで置くときの位置（いま見えている範囲で、他のものと重ならない所）
 function findFreePosition() {
   const W = dom.board.clientWidth;
   const H = dom.board.clientHeight;
   const w = 152;
   const h = 130;
+  const left = -pan.x;
+  const top = -pan.y;
 
   const blocked = graph.nodes.map((n) => {
     const e = nodeElOf(n.id);
@@ -550,13 +582,16 @@ function findFreePosition() {
     if (r) blocked.push(r);
   });
 
-  for (let y = 70; y + h <= H - 10; y += 70) {
-    for (let x = 20; x + w <= W - 10; x += 80) {
+  for (let y = top + 70; y + h <= top + H - 10; y += 70) {
+    for (let x = left + 20; x + w <= left + W - 10; x += 80) {
       const hit = blocked.some((r) => x < r.x + r.w && x + w > r.x && y < r.y + r.h && y + h > r.y);
       if (!hit) return { x, y };
     }
   }
-  return { x: 40 + (graph.nodes.length % 6) * 30, y: 90 + (graph.nodes.length % 5) * 30 };
+  return {
+    x: left + 40 + (graph.nodes.length % 6) * 30,
+    y: top + 90 + (graph.nodes.length % 5) * 30,
+  };
 }
 
 // グラフが変わったら、前の結果は古くなる
@@ -572,7 +607,7 @@ function onGraphChanged() {
 function renderNodes() {
   clearPending();
   dom.board.querySelectorAll('.node').forEach((n) => n.remove());
-  graph.nodes.forEach((node) => dom.board.append(createNodeEl(node)));
+  graph.nodes.forEach((node) => dom.world.append(createNodeEl(node)));
   refreshEveCaps();
   renderEdges();
 }
@@ -732,7 +767,7 @@ function portCenter(nodeId, portId, dir) {
   );
   if (!p) return null;
   const r = p.getBoundingClientRect();
-  const b = dom.board.getBoundingClientRect();
+  const b = worldRect();
   return { x: r.left + r.width / 2 - b.left, y: r.top + r.height / 2 - b.top };
 }
 
@@ -792,7 +827,7 @@ function renderEdges() {
 function drawTempEdge(from, clientX, clientY) {
   const a = portCenter(from.node, from.port, 'out');
   if (!a) return;
-  const b = dom.board.getBoundingClientRect();
+  const b = worldRect();
   const end = { x: clientX - b.left, y: clientY - b.top };
   dom.tempLayer.replaceChildren(svgEl('path', { class: 'edge-temp', d: route(a, end) }));
 }
@@ -1504,6 +1539,7 @@ async function runSimulation() {
   clearOutcome();
   sim.skipped = false;
 
+  const ranKey = activeObjective; // 実行中に切り替えられても、この結果は実行した攻撃者のもの
   const res = evaluate();
   const eveMap = new Map();
   const reports = eveReports(res.channelSteps, capsFor(activeObjective));
@@ -1517,7 +1553,7 @@ async function runSimulation() {
   }
 
   markOutcome(res);
-  showResult(res);
+  showResult(res, ranKey);
 }
 
 /* ==========================================================
@@ -1552,7 +1588,7 @@ function hideResult() {
   }
 }
 
-function showResult(res) {
+function showResult(res, key = activeObjective) {
   const box = dom.result;
   box.replaceChildren();
   box.hidden = false;
@@ -1579,48 +1615,57 @@ function showResult(res) {
     return;
   }
 
+  // 試した攻撃者（Objective）の結果だけを出す。A で試しているときに B は出さない。
+  const keys = Object.keys(stage.objectives);
+  const isFinal = key === keys[keys.length - 1]; // いちばん強い攻撃者で試しているか
+  const shown = res.objectives[key];
   const allMet = Object.values(res.objectives).every((o) => o.met);
   // 守りの要件（機密性など）が破られたか、それとも Bob に届かなかっただけか
-  const breached = Object.values(res.objectives).some((o) =>
-    o.checks.some((c) => c.key !== 'delivery' && !c.met)
-  );
-  box.classList.add(res.cleared ? 'is-safe' : 'is-broken');
+  const breached = shown.checks.some((c) => c.key !== 'delivery' && !c.met);
+  box.classList.add(shown.met ? 'is-safe' : 'is-broken');
 
-  let title = 'Objective A クリア！';
-  if (!res.cleared) title = breached ? '💥 突破された！' : 'メッセージがうまく届いていません';
-  else if (allMet) title = '守り切った！';
+  let title = `Objective ${key} クリア！`;
+  if (!shown.met) title = breached ? '💥 突破された！' : 'メッセージがうまく届いていません';
+  else if (isFinal && allMet) title = '守り切った！';
 
   const head = el('div', 'result-head');
   head.append(el('h2', 'result-title', title));
-  const chip = el('span', `rating rating-${res.rating}`, res.rating);
-  chip.setAttribute('aria-label', `評価 ${res.rating}`);
-  head.append(chip, close);
+  // 評価は、すべての Objective を試し終える最後の攻撃者のときだけ出す
+  if (isFinal) {
+    const chip = el('span', `rating rating-${res.rating}`, res.rating);
+    chip.setAttribute('aria-label', `評価 ${res.rating}`);
+    head.append(chip);
+  }
+  head.append(close);
   box.append(head);
 
   // 組んだ通信の流れ
   box.append(el('p', 'result-flow', res.flow.join('  →  ')));
 
-  // Objective ごとの結果
+  // 試した Objective の結果
   const grid = el('div', 'result-objectives');
-  Object.entries(res.objectives).forEach(([key, obj]) => {
-    const card = el('div', `result-objective ${obj.met ? 'is-met' : 'is-unmet'}`);
-    const h3 = el('h3');
-    h3.append(el('span', null, `Objective ${key}`), el('span', null, obj.met ? '達成' : '未達成'));
-    card.append(h3);
-
-    const list = el('div', 'check-list');
-    obj.checks.forEach((c) => {
-      const item = el('div', `check-item ${c.met ? 'is-met' : 'is-unmet'}`);
-      item.append(el('strong', null, c.label), el('p', null, c.reason));
-      list.append(item);
-    });
-    card.append(list);
-    grid.append(card);
+  const card = el('div', `result-objective ${shown.met ? 'is-met' : 'is-unmet'}`);
+  const h3 = el('h3');
+  h3.append(el('span', null, `Objective ${key}`), el('span', null, shown.met ? '達成' : '未達成'));
+  card.append(h3);
+  const list = el('div', 'check-list');
+  shown.checks.forEach((c) => {
+    const item = el('div', `check-item ${c.met ? 'is-met' : 'is-unmet'}`);
+    item.append(el('strong', null, c.label), el('p', null, c.reason));
+    list.append(item);
   });
+  card.append(list);
+  grid.append(card);
   box.append(grid);
 
-  // 無駄の指摘
-  if (res.cleared && allMet) {
+  if (shown.met && !isFinal) {
+    // 次の（もっと強い）攻撃者がいることだけ伝える。結果は見せない。
+    const nextKey = keys[keys.indexOf(key) + 1];
+    box.append(
+      el('p', 'result-note', `右上の「攻撃者」を ${nextKey} に切り替えて、もっと強い攻撃者に挑戦しよう。`)
+    );
+  } else if (shown.met && isFinal && allMet) {
+    // 無駄の指摘
     box.append(
       el(
         'p',
@@ -1634,7 +1679,8 @@ function showResult(res) {
 
   box.append(createActions(res.cleared));
 
-  if (res.cleared) saveProgress(stage.id, res.rating);
+  // 進捗: 最後の攻撃者まで試したら評価を保存。途中（A だけ）なら「A クリア」として B 評価を保存する。
+  if (res.cleared) saveProgress(stage.id, isFinal ? res.rating : 'B');
   revealResult();
 }
 
@@ -1679,6 +1725,8 @@ function showStatus(message, isError = false) {
 function resetBoard() {
   seq = 0;
   energyState.clear();
+  pan = { x: 0, y: 0 };
+  applyPan();
   graph = initialGraph();
   renderNodes();
   hideResult();
@@ -1703,6 +1751,8 @@ async function init() {
   dom.root = $('#sim-root');
   dom.editor = $('#editor');
   dom.board = $('#board');
+  dom.world = $('#world');
+  dom.viewReset = $('#view-reset');
   dom.result = $('#result');
   dom.palette = $('#palette');
   dom.paletteBar = $('#palette-bar');
@@ -1758,15 +1808,17 @@ async function init() {
   });
   dom.resetButton.addEventListener('click', resetBoard);
 
-  // 何もないところをクリックしたら、つなぎ途中の選択を解除
-  dom.board.addEventListener('click', (e) => {
-    if (e.target === dom.board) clearPending();
+  // 何もないところをドラッグするとキャンバスが動く（クリックだけなら、つなぎ途中の選択を解除）
+  dom.board.addEventListener('pointerdown', startPan);
+  dom.viewReset.addEventListener('click', () => {
+    pan = { x: 0, y: 0 };
+    applyPan();
   });
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') clearPending();
   });
 
-  window.addEventListener('resize', clampAllNodes);
+  window.addEventListener('resize', renderEdges);
   if (document.fonts?.ready) document.fonts.ready.then(renderEdges);
 }
 
