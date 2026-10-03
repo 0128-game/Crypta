@@ -32,8 +32,13 @@
         </div>
       </div>
 
-      <!-- キャンバスを動かしたときだけ出る「位置を戻す」ボタン -->
-      <button type="button" class="view-reset" id="view-reset" hidden>位置を戻す</button>
+      <!-- 右: 拡大・縮小 -->
+      <div class="zoom-controls" id="zoom-controls" role="group" aria-label="表示の拡大・縮小">
+        <button type="button" id="zoom-in" aria-label="拡大">＋</button>
+        <button type="button" id="zoom-label" aria-label="拡大率を100%に戻す" title="100%に戻す">100%</button>
+        <button type="button" id="zoom-out" aria-label="縮小">－</button>
+        <button type="button" id="zoom-fit" aria-label="全体を表示" title="全体を表示">全体</button>
+      </div>
 
       <!-- 左上: ステージの条件と、シミュレーション結果（結果が出るときは条件を畳む） -->
       <div class="side-stack" id="side-stack">
