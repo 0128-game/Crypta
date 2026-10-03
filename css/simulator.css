@@ -99,7 +99,39 @@
   background-image: radial-gradient(var(--line) 1.5px, transparent 1.5px);
   background-size: 24px 24px;
   outline: none;
+  cursor: grab;
+  touch-action: none; /* タッチでもキャンバスをドラッグで動かせるように */
 }
+.board.is-panning {
+  cursor: grabbing;
+}
+
+/* ノードと線は world に入れ、world ごと動かす */
+.world {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.view-reset {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 20;
+  padding: 0.35rem 1rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  background: rgba(255, 255, 255, 0.94);
+  border: 2px solid var(--primary-soft);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+}
+.view-reset[hidden] { display: none; }
+.view-reset:hover { background: var(--primary-soft); }
+.editor.has-result .view-reset { bottom: 0.75rem; }
 
 /* ---------- 線 ---------- */
 .edges {
