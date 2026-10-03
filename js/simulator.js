@@ -147,6 +147,9 @@ let seq = 0;
 let pending = null;          // タップでつなぐ途中の出力ポート { node, port, type }
 let activeObjective = 'A';   // 攻撃者の強さをどの Objective で見るか
 let pan = { x: 0, y: 0 };    // キャンバスを動かした量（ドラッグで動かせる）
+let zoom = 1;                // キャンバスの拡大率（ホイール・ピンチ・ボタンで変える）
+const ZOOM_MIN = 0.3;
+const ZOOM_MAX = 2.5;
 
 const dom = {};
 const edgeEls = new Map();    // edgeId → { line, energy, len }
@@ -176,15 +179,79 @@ function nextId(prefix) {
   return `${prefix}${seq}`;
 }
 
-// ノードの座標は「キャンバス上の位置」で持つ。画面上の位置との変換は worldRect() を基準にする。
+// ノードの座標は「キャンバス上の位置」で持つ（拡大・移動の影響を受けない）。
+// 画面上の位置との変換は、worldRect() を基準に zoom で割る。
 function worldRect() {
   return dom.world.getBoundingClientRect();
 }
 
+// 画面上の座標 → キャンバス上の座標
+function toWorld(clientX, clientY) {
+  const r = worldRect();
+  return { x: (clientX - r.left) / zoom, y: (clientY - r.top) / zoom };
+}
+
 function applyPan() {
-  dom.world.style.transform = `translate(${pan.x}px, ${pan.y}px)`;
+  dom.world.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
   dom.board.style.backgroundPosition = `${pan.x}px ${pan.y}px`;
-  if (dom.viewReset) dom.viewReset.hidden = pan.x === 0 && pan.y === 0;
+  dom.board.style.backgroundSize = `${24 * zoom}px ${24 * zoom}px`;
+  if (dom.zoomLabel) dom.zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+}
+
+// (clientX, clientY) の下にあるキャンバス上の点を動かさずに、拡大率だけ変える
+function zoomAt(clientX, clientY, nextZoom) {
+  const nz = clamp(nextZoom, ZOOM_MIN, ZOOM_MAX);
+  const b = dom.board.getBoundingClientRect();
+  const wx = (clientX - b.left - pan.x) / zoom;
+  const wy = (clientY - b.top - pan.y) / zoom;
+  zoom = nz;
+  pan.x = clientX - b.left - wx * nz;
+  pan.y = clientY - b.top - wy * nz;
+  applyPan();
+}
+
+function zoomByButton(factor) {
+  const b = dom.board.getBoundingClientRect();
+  zoomAt(b.left + b.width / 2, b.top + b.height / 2, zoom * factor);
+}
+
+function resetView() {
+  pan = { x: 0, y: 0 };
+  zoom = 1;
+  applyPan();
+}
+
+// すべてのノードがちょうど入るように、拡大率と位置を合わせる
+function fitView() {
+  if (graph.nodes.length === 0) return;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  graph.nodes.forEach((n) => {
+    const e = nodeElOf(n.id);
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + (e?.offsetWidth ?? 152));
+    maxY = Math.max(maxY, n.y + (e?.offsetHeight ?? 130));
+  });
+
+  const W = dom.board.clientWidth;
+  const H = dom.board.clientHeight;
+  // 重ねて表示している部品一覧やボタンの下に隠れないよう、余白をとる
+  const padLeft = W >= 900 ? dom.sideStack.offsetWidth + 24 : 24;
+  const padRight = 24;
+  const padTop = 70;
+  const padBottom = dom.paletteBar.offsetParent ? dom.paletteBar.offsetHeight + 24 : 24;
+  const availW = Math.max(100, W - padLeft - padRight);
+  const availH = Math.max(100, H - padTop - padBottom);
+
+  const bw = maxX - minX;
+  const bh = maxY - minY;
+  zoom = clamp(Math.min(availW / bw, availH / bh), ZOOM_MIN, 1.2);
+  pan.x = padLeft + (availW - bw * zoom) / 2 - minX * zoom;
+  pan.y = padTop + (availH - bh * zoom) / 2 - minY * zoom;
+  applyPan();
 }
 
 function findNode(id) {
@@ -452,15 +519,15 @@ function togglePendingByKeyboard(from, portEl) {
 // --- ノードのドラッグ移動 ---
 function startNodeDrag(e, node, nodeEl) {
   e.preventDefault();
-  const wr = worldRect();
-  const offX = e.clientX - wr.left - node.x;
-  const offY = e.clientY - wr.top - node.y;
+  const start = toWorld(e.clientX, e.clientY);
+  const offX = start.x - node.x;
+  const offY = start.y - node.y;
   nodeEl.classList.add('is-dragging');
 
   const onMove = (ev) => {
-    const rect = worldRect();
-    node.x = ev.clientX - rect.left - offX;
-    node.y = ev.clientY - rect.top - offY;
+    const w = toWorld(ev.clientX, ev.clientY);
+    node.x = w.x - offX;
+    node.y = w.y - offY;
     nodeEl.style.left = `${node.x}px`;
     nodeEl.style.top = `${node.y}px`;
     renderEdges();
@@ -478,16 +545,62 @@ function startNodeDrag(e, node, nodeEl) {
   window.addEventListener('pointercancel', onUp);
 }
 
-// --- キャンバス自体のドラッグ（何もないところをつかんで動かす） ---
+// --- キャンバス自体のドラッグ（何もないところをつかんで動かす）と、2本指のピンチ ---
+const bgPointers = new Map(); // 背景を触っている指・ポインタ
+let pinch = null;
+
+function pinchPoints() {
+  const [a, b] = [...bgPointers.values()];
+  return { a, b, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, dist: Math.hypot(a.x - b.x, a.y - b.y) || 1 };
+}
+
+function beginPinch() {
+  const { cx, cy, dist } = pinchPoints();
+  const rect = dom.board.getBoundingClientRect();
+  pinch = {
+    dist,
+    zoom,
+    wx: (cx - rect.left - pan.x) / zoom,
+    wy: (cy - rect.top - pan.y) / zoom,
+  };
+}
+
+function updatePinch() {
+  const { cx, cy, dist } = pinchPoints();
+  const rect = dom.board.getBoundingClientRect();
+  zoom = clamp(pinch.zoom * (dist / pinch.dist), ZOOM_MIN, ZOOM_MAX);
+  pan.x = cx - rect.left - pinch.wx * zoom;
+  pan.y = cy - rect.top - pinch.wy * zoom;
+  applyPan();
+}
+
 function startPan(e) {
   if (e.button !== undefined && e.button !== 0) return;
   if (e.target !== dom.board && e.target !== dom.world) return;
 
-  const start = { x: e.clientX, y: e.clientY };
-  const origin = { ...pan };
+  bgPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (bgPointers.size === 2) {
+    beginPinch();
+    return;
+  }
+  if (bgPointers.size > 2) return;
+
+  let panId = e.pointerId;
+  let start = { x: e.clientX, y: e.clientY };
+  let origin = { ...pan };
   let moved = false;
 
   const onMove = (ev) => {
+    if (!bgPointers.has(ev.pointerId)) return;
+    bgPointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+
+    if (pinch) {
+      moved = true;
+      dom.board.classList.add('is-panning');
+      updatePinch();
+      return;
+    }
+    if (ev.pointerId !== panId) return;
     if (!moved && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 4) {
       moved = true;
       dom.board.classList.add('is-panning');
@@ -499,17 +612,39 @@ function startPan(e) {
     }
   };
 
-  const onUp = () => {
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', onUp);
-    window.removeEventListener('pointercancel', onUp);
-    dom.board.classList.remove('is-panning');
-    if (!moved) clearPending(); // ただのクリックなら、つなぎ途中の選択を解除
+  const onUp = (ev) => {
+    bgPointers.delete(ev.pointerId);
+    if (pinch && bgPointers.size < 2) {
+      // ピンチが終わった。残った指で、そのままキャンバスを動かし続けられるようにする
+      pinch = null;
+      const [restId, rest] = [...bgPointers.entries()][0] ?? [];
+      if (rest) {
+        panId = restId;
+        start = { ...rest };
+        origin = { ...pan };
+      }
+    }
+    if (bgPointers.size === 0) {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      dom.board.classList.remove('is-panning');
+      if (!moved) clearPending(); // ただのクリックなら、つなぎ途中の選択を解除
+    }
   };
 
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onUp);
+}
+
+// マウスのホイール（トラックパッドのピンチも ctrl + ホイールとして届く）で拡大・縮小
+function onWheel(e) {
+  e.preventDefault();
+  let delta = e.deltaY;
+  if (e.deltaMode === 1) delta *= 33; // 行単位で届く環境（Firefox など）
+  const speed = e.ctrlKey ? 0.01 : 0.0015;
+  zoomAt(e.clientX, e.clientY, zoom * Math.exp(-delta * speed));
 }
 
 // --- コンポーネント一覧からのドラッグ配置（クリックなら空いている場所に置く） ---
@@ -546,8 +681,8 @@ function startPaletteDrag(e, type, label) {
       ev.clientX >= rect.left && ev.clientX <= rect.right &&
       ev.clientY >= rect.top && ev.clientY <= rect.bottom;
     if (inside) {
-      const wr = worldRect();
-      addNode(type, ev.clientX - wr.left - 76, ev.clientY - wr.top - 40);
+      const w = toWorld(ev.clientX, ev.clientY);
+      addNode(type, w.x - 76, w.y - 40);
     }
   };
 
@@ -561,17 +696,23 @@ function overlayRect(element) {
   if (!element || !element.offsetParent) return null;
   const r = element.getBoundingClientRect();
   const w = worldRect();
-  return { x: r.left - w.left, y: r.top - w.top, w: r.width, h: r.height };
+  return {
+    x: (r.left - w.left) / zoom,
+    y: (r.top - w.top) / zoom,
+    w: r.width / zoom,
+    h: r.height / zoom,
+  };
 }
 
 // クリック・キーボードで置くときの位置（いま見えている範囲で、他のものと重ならない所）
 function findFreePosition() {
-  const W = dom.board.clientWidth;
-  const H = dom.board.clientHeight;
+  // いま見えている範囲（キャンバス上の座標）
+  const W = dom.board.clientWidth / zoom;
+  const H = dom.board.clientHeight / zoom;
   const w = 152;
   const h = 130;
-  const left = -pan.x;
-  const top = -pan.y;
+  const left = -pan.x / zoom;
+  const top = -pan.y / zoom;
 
   const blocked = graph.nodes.map((n) => {
     const e = nodeElOf(n.id);
@@ -768,7 +909,10 @@ function portCenter(nodeId, portId, dir) {
   if (!p) return null;
   const r = p.getBoundingClientRect();
   const b = worldRect();
-  return { x: r.left + r.width / 2 - b.left, y: r.top + r.height / 2 - b.top };
+  return {
+    x: (r.left + r.width / 2 - b.left) / zoom,
+    y: (r.top + r.height / 2 - b.top) / zoom,
+  };
 }
 
 // 直線だけで作る S 字の配線（横 → 縦 → 横）
@@ -827,8 +971,7 @@ function renderEdges() {
 function drawTempEdge(from, clientX, clientY) {
   const a = portCenter(from.node, from.port, 'out');
   if (!a) return;
-  const b = worldRect();
-  const end = { x: clientX - b.left, y: clientY - b.top };
+  const end = toWorld(clientX, clientY);
   dom.tempLayer.replaceChildren(svgEl('path', { class: 'edge-temp', d: route(a, end) }));
 }
 
@@ -1725,8 +1868,7 @@ function showStatus(message, isError = false) {
 function resetBoard() {
   seq = 0;
   energyState.clear();
-  pan = { x: 0, y: 0 };
-  applyPan();
+  resetView();
   graph = initialGraph();
   renderNodes();
   hideResult();
@@ -1752,7 +1894,7 @@ async function init() {
   dom.editor = $('#editor');
   dom.board = $('#board');
   dom.world = $('#world');
-  dom.viewReset = $('#view-reset');
+  dom.zoomLabel = $('#zoom-label');
   dom.result = $('#result');
   dom.palette = $('#palette');
   dom.paletteBar = $('#palette-bar');
@@ -1810,10 +1952,11 @@ async function init() {
 
   // 何もないところをドラッグするとキャンバスが動く（クリックだけなら、つなぎ途中の選択を解除）
   dom.board.addEventListener('pointerdown', startPan);
-  dom.viewReset.addEventListener('click', () => {
-    pan = { x: 0, y: 0 };
-    applyPan();
-  });
+  dom.board.addEventListener('wheel', onWheel, { passive: false });
+  $('#zoom-in').addEventListener('click', () => zoomByButton(1.25));
+  $('#zoom-out').addEventListener('click', () => zoomByButton(1 / 1.25));
+  $('#zoom-label').addEventListener('click', resetView);
+  $('#zoom-fit').addEventListener('click', fitView);
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') clearPending();
   });
