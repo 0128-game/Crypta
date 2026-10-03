@@ -9,73 +9,74 @@
 </head>
 <body class="page-simulator">
 
-  <a class="skip-link" href="#workspace">通信を設計する場所へ移動</a>
+  <a class="skip-link" href="#board">通信を設計する場所へ移動</a>
 
   <header class="site-header">
     <a class="site-logo" href="index.html" aria-label="CRYPTA トップへ">CRYPTA</a>
     <a class="header-link" href="index.html#stage-section">ステージ一覧</a>
   </header>
 
-  <main class="sim">
+  <!-- エディタ: キャンバスを全面に広げ、条件・ボタン・部品をその上に重ねる -->
+  <main class="editor" id="editor">
 
     <p class="sim-status" id="sim-status" role="status">ステージを読み込み中…</p>
 
     <!-- ステージが読み込めたら simulator.js が hidden を外す -->
     <div id="sim-root" hidden>
 
-      <section class="sim-intro" aria-labelledby="stage-title">
-        <h1 id="stage-title"></h1>
-        <p id="stage-goal"></p>
-      </section>
+      <!-- キャンバス（全面） -->
+      <div class="board" id="board" tabindex="-1">
+        <svg class="edges" id="edges" aria-hidden="true"></svg>
+      </div>
 
-      <!-- ステージの条件 -->
-      <section class="brief" aria-label="ステージの条件">
-        <div class="brief-card">
-          <h2>攻撃者</h2>
-          <div class="brief-badges" id="attacker-badges"></div>
-          <dl class="caps" id="attacker-caps"></dl>
-        </div>
-        <div class="brief-card">
-          <h2>クリア条件</h2>
-          <ol class="objectives" id="objective-list"></ol>
-        </div>
-      </section>
+      <!-- 左上: ステージの条件と、シミュレーション結果（結果が出るときは条件を畳む） -->
+      <div class="side-stack" id="side-stack">
 
-      <!-- 通信を設計するキャンバス -->
-      <section class="workspace" id="workspace" aria-labelledby="workspace-title">
-        <div class="workspace-head">
-          <h2 id="workspace-title">通信を設計する</h2>
-          <div class="workspace-actions">
-            <button type="button" class="button button-secondary" id="reset-button">やり直す</button>
-            <button type="button" class="button button-primary" id="run-button">シミュレーション開始</button>
-          </div>
+      <aside class="brief-panel" id="brief-panel" aria-label="ステージの条件">
+        <div class="brief-bar">
+          <h1 id="stage-title"></h1>
+          <button type="button" class="brief-toggle" id="brief-toggle" aria-expanded="true" aria-controls="brief-body">隠す</button>
         </div>
-        <p class="workspace-hint">
-          下の部品をドラッグして置き、丸いポートどうしを線でつなぎます（ポートをタップ → 別のポートをタップ でもつながります）。
-          線をクリックすると消せます。
-        </p>
-        <div class="canvas-scroll">
-          <div class="board" id="board">
-            <svg class="edges" id="edges" aria-hidden="true"></svg>
-          </div>
-        </div>
-      </section>
+        <div class="brief-body" id="brief-body">
+          <p class="brief-goal" id="stage-goal"></p>
 
-      <!-- コンポーネント一覧（下部） -->
-      <section class="palette-section" aria-labelledby="palette-title">
-        <h2 id="palette-title">コンポーネント</h2>
-        <div class="palette" id="palette"></div>
-      </section>
+          <section class="brief-group" aria-labelledby="attacker-title">
+            <h2 id="attacker-title">攻撃者</h2>
+            <div class="brief-badges" id="attacker-badges"></div>
+            <dl class="caps" id="attacker-caps"></dl>
+          </section>
+
+          <section class="brief-group" aria-labelledby="objective-title">
+            <h2 id="objective-title">クリア条件</h2>
+            <ol class="objectives" id="objective-list"></ol>
+          </section>
+        </div>
+      </aside>
 
       <!-- シミュレーション結果 -->
       <section class="result" id="result" hidden aria-live="polite" tabindex="-1"></section>
 
+      </div>
+
+      <!-- 右上: 操作ボタン -->
+      <div class="toolbar" id="toolbar">
+        <div class="segmented" id="objective-toggle" role="group" aria-label="どの攻撃者で見るか" hidden></div>
+        <button type="button" class="button button-secondary" id="reset-button">やり直す</button>
+        <button type="button" class="button button-primary" id="run-button">シミュレーション開始</button>
+      </div>
+
+      <!-- 下: 凡例とコンポーネント一覧 -->
+      <div class="palette-bar" id="palette-bar">
+        <ul class="legend" id="legend" aria-label="データの色"></ul>
+        <div class="palette-row">
+          <span class="palette-label">部品</span>
+          <div class="palette" id="palette"></div>
+        </div>
+        <p class="palette-hint">部品をドラッグして置き、丸いポートどうしをつなぎます。線をクリックすると消せます。</p>
+      </div>
+
     </div>
   </main>
-
-  <footer class="site-footer">
-    <p>CRYPTA は暗号と情報セキュリティを学ぶための教材ゲームです。</p>
-  </footer>
 
   <!-- 読み込み失敗の診断用: スクリプトが動かないとき、画面にエラーを出す -->
   <script>
