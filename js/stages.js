@@ -6,18 +6,18 @@
 // 並び順がそのまま一覧の表示順になる。
 export const STAGE_IDS = [
   'test',
-  // 'stage01',
-  // 'stage02',
-  // 'stage03',
-  // 'stage04',
-  // 'stage05',
-  // 'stage06',
-  // 'stage07',
-  // 'stage08',
-  // 'stage09',
-  // 'stage10',
-  // 'stage11',
-  // 'stage12',
+  'stage01',
+  'stage02',
+  'stage03',
+  'stage04',
+  'stage05',
+  'stage06',
+  'stage07',
+  'stage08',
+  'stage09',
+  'stage10',
+  'stage11',
+  'stage12',
 ];
 
 // 1ステージ分を読み込む。失敗したら例外を投げる。
