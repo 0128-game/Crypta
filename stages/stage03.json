@@ -1,0 +1,73 @@
+{
+  "id": "stage03",
+  "title": "エニグマ",
+  "goal": "頻度分析ができるEveからも、メッセージを守ろう",
+  "attacker": {
+    "type": "eve",
+    "capabilities": {
+      "compute": "frequency",
+      "observedMessages": 1,
+      "knownInfo": [],
+      "observationScope": "channel"
+    }
+  },
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt"
+  ],
+  "algorithms": [
+    "caesar",
+    "substitution",
+    "enigma"
+  ],
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality"
+      ]
+    },
+    "B": {
+      "require": [
+        "confidentiality"
+      ],
+      "attackerOverride": {
+        "compute": "cryptanalysis"
+      },
+      "unlock": {
+        "algorithms": [
+          "aes"
+        ]
+      }
+    }
+  },
+  "rating": {
+    "minimalComponents": [
+      "key",
+      "encrypt",
+      "decrypt"
+    ]
+  },
+  "lesson": [
+    {
+      "label": "目的",
+      "text": "構造（ローター回転）を複雑化させた多表換字暗号による強度向上と暗号作成の機械化。"
+    },
+    {
+      "label": "Alice/Bobの動作",
+      "text": "暗号機に「今日の鍵（ローターの初期位置や配線）」をセットし、キーボードで文を打ち込んで暗号化・復号する。1文字打つごとに内部の歯車が回り、変換ルールが自動で変わる。"
+    },
+    {
+      "label": "Eveの動作",
+      "text": "無線通信を傍受するが、同じ文字を打っても毎回違う文字に変換されるため頻度分析が通用しない。"
+    },
+    {
+      "label": "Alice/Bobの課題",
+      "text": "毎日の初期設定が書かれた「コードブック（鍵帳）」を安全に事前配布・管理し続けなければならない。"
+    },
+    {
+      "label": "Eveの脅威",
+      "text": "「同じ文字には絶対に変換されない（AがAにならない）」という機械的構造の弱点や定型文の運用ミスを突かれ、論理計算機（ボム）による解読を行われてしまう。"
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "id": "stage09",
+  "title": "デジタル署名",
+  "goal": "「Aliceが送った」ことを、誰にでも証明できるようにしよう",
+  "message": "PAY 100",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "observer",
+      "observedMessages": 1,
+      "knownInfo": [],
+      "observationScope": "channel",
+      "attacks": [
+        "tamper",
+        "forge"
+      ]
+    }
+  },
+  "components": [
+    "key",
+    "hash",
+    "hashcheck",
+    "mac",
+    "maccheck",
+    "keypair",
+    "sign",
+    "verify"
+  ],
+  "algorithms": [
+    "aes"
+  ],
+  "rsaBits": [
+    2048
+  ],
+  "defaults": {
+    "owner": "alice"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ]
+    },
+    "B": {
+      "require": [
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ],
+      "attackerOverride": {
+        "attacks": [
+          "tamper",
+          "forge",
+          "keyswap"
+        ]
+      },
+      "rules": {
+        "noPreshare": [
+          "pub"
+        ]
+      },
+      "unlock": {
+        "components": [
+          "ca",
+          "certcheck"
+        ]
+      }
+    }
+  },
+  "rating": {
+    "minimalComponents": [
+      "keypair",
+      "sign",
+      "verify",
+      "ca",
+      "certcheck"
+    ]
+  },
+  "lesson": [
+    {
+      "label": "目的",
+      "text": "送信者本人しか持たない「秘密鍵」で署名することで、送信者の証明（成りすまし防止）、改ざん検知（完全性）、および送信事実の証明（否認防止）を達成する。"
+    },
+    {
+      "label": "Alice/Bobの動作",
+      "text": "Aliceは本文のハッシュ値を「自分の秘密鍵」で暗号化（署名）してメッセージと共に送る。Bobは「Aliceの公開鍵」を使って署名を復号・検証する。"
+    },
+    {
+      "label": "Malloryの動作",
+      "text": "本文の改ざんを試みたり、通信の途中に割り込んで「これがAliceの公開鍵です」と偽って自分の公開鍵を送りつける（中間者攻撃 / 鍵すり替え）。"
+    },
+    {
+      "label": "Alice/Bobの課題",
+      "text": "受信した「Aliceの公開鍵」が、本当にAlice本人の公開鍵なのかを単体で保証する手段がない。"
+    },
+    {
+      "label": "Malloryの脅威",
+      "text": "Aliceの秘密鍵を持っていないため正しい署名を作成できず、改ざんや送信事実の否認は完全に防がれる。ただし、公開鍵自体を自分のものにすり替える攻撃の隙が残る。"
+    }
+  ]
+}

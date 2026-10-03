@@ -1,0 +1,81 @@
+{
+  "id": "stage07",
+  "title": "ハッシュ関数",
+  "goal": "書き換えられたら、Bobが気づけるようにしよう",
+  "message": "PAY 100",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "observer",
+      "observedMessages": 1,
+      "knownInfo": [],
+      "observationScope": "channel",
+      "attacks": [
+        "tamper"
+      ]
+    }
+  },
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "hash",
+    "hashcheck"
+  ],
+  "algorithms": [
+    "aes"
+  ],
+  "objectives": {
+    "A": {
+      "require": [
+        "integrity"
+      ]
+    },
+    "B": {
+      "require": [
+        "integrity"
+      ],
+      "attackerOverride": {
+        "attacks": [
+          "tamper",
+          "forge"
+        ]
+      },
+      "unlock": {
+        "components": [
+          "mac",
+          "maccheck"
+        ]
+      }
+    }
+  },
+  "rating": {
+    "minimalComponents": [
+      "key",
+      "mac",
+      "maccheck"
+    ]
+  },
+  "lesson": [
+    {
+      "label": "目的",
+      "text": "データから固定長の「指紋（ハッシュ値）」を作成し、データ転送中の意図しないデータ破損や簡易的な変形を検知する基準を作る。"
+    },
+    {
+      "label": "Alice/Bobの動作",
+      "text": "Aliceは本文から計算したハッシュ値をメッセージと一緒に送る。Bobも届いた本文からハッシュ値を再計算し、届いたハッシュ値と一致するか照合する。"
+    },
+    {
+      "label": "Malloryの動作",
+      "text": "メッセージの書き換えを行い、さらに書き換えたメッセージから自分で再計算した偽のハッシュ値に丸ごと差し替えて送信する。"
+    },
+    {
+      "label": "Alice/Bobの課題",
+      "text": "ハッシュ関数は誰でも計算できるため、メッセージとハッシュ値をセットで丸ごとすり替えられた場合に改ざんを検知できず、送信者がだれかの確認（送信者認証）もできない。"
+    },
+    {
+      "label": "Malloryの脅威",
+      "text": "不可逆性と雪崩効果により本文だけを書き換えた場合は即座にバレるが、ハッシュ値ごと書き換える「セットすり替え攻撃」に対しては防御できない。"
+    }
+  ]
+}

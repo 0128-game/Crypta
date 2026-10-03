@@ -1,0 +1,88 @@
+{
+  "id": "stage08",
+  "title": "メッセージ認証符号（MAC）",
+  "goal": "書き換えも、なりすましも、見抜けるようにしよう",
+  "message": "PAY 100",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "observer",
+      "observedMessages": 1,
+      "knownInfo": [],
+      "observationScope": "channel",
+      "attacks": [
+        "tamper",
+        "forge"
+      ]
+    }
+  },
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "hash",
+    "hashcheck",
+    "mac",
+    "maccheck"
+  ],
+  "algorithms": [
+    "aes"
+  ],
+  "rsaBits": [
+    2048
+  ],
+  "defaults": {
+    "owner": "alice"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "integrity",
+        "authenticity"
+      ]
+    },
+    "B": {
+      "require": [
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ],
+      "unlock": {
+        "components": [
+          "keypair",
+          "sign",
+          "verify"
+        ]
+      }
+    }
+  },
+  "rating": {
+    "minimalComponents": [
+      "keypair",
+      "sign",
+      "verify"
+    ]
+  },
+  "lesson": [
+    {
+      "label": "目的",
+      "text": "共通鍵をハッシュ計算に組み合わせることで、データが途中で書き換えられていないか（完全性）と、秘密鍵を知る正しい相手からのデータか（送信元認証）を同時に確認する。"
+    },
+    {
+      "label": "Alice/Bobの動作",
+      "text": "Aliceはメッセージと秘密の「共通鍵」を掛け合わせてMAC値（指紋）を計算し、メッセージと一緒に送る。Bobも同じ共通鍵でMAC値を再計算し、届いたMAC値と照合する。"
+    },
+    {
+      "label": "Malloryの動作",
+      "text": "メッセージの書き換えや偽データの挿入を試みる。"
+    },
+    {
+      "label": "Alice/Bobの課題",
+      "text": "AliceとBobが「全く同じ共通鍵」を持っているため、第三者に対して「Aliceが書いた」のか「Bobが捏造した」のかを証明できず、送信後のしらばっくれ（否認防止）を防げない。"
+    },
+    {
+      "label": "Malloryの脅威",
+      "text": "秘密の共通鍵を知らないため、メッセージを書き換えても正しいMAC値を計算できず、改ざんやすり替え攻撃が即座にバレて拒否される。"
+    }
+  ]
+}
