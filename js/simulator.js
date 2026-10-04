@@ -2012,7 +2012,42 @@ function normalizeStage(raw) {
   };
 }
 
+// simulator.html に必要な要素（HTML が古いと、ここが足りなくなる）
+const REQUIRED_IDS = [
+  'sim-status', 'sim-root', 'editor', 'board', 'world', 'edges',
+  'stage-title', 'stage-goal', 'brief-lesson', 'lesson-list',
+  'attacker-badges', 'attacker-caps', 'objective-list',
+  'side-stack', 'brief-panel', 'brief-toggle', 'guide-open', 'glossary-open',
+  'toolbar', 'objective-toggle', 'reset-button', 'run-button',
+  'zoom-in', 'zoom-out', 'zoom-label', 'zoom-fit',
+  'palette-bar', 'legend', 'palette', 'result',
+  'guide', 'guide-title', 'guide-body', 'guide-close', 'guide-start',
+  'glossary', 'glossary-close', 'glossary-search', 'glossary-list',
+  'term-dialog', 'term-cat', 'term-title', 'term-body', 'term-close', 'term-done', 'term-glossary',
+];
+
+// 足りない要素があれば、エラーで止まる前に、原因を画面に出す
+function checkPage() {
+  const missing = REQUIRED_IDS.filter((id) => !document.getElementById(id));
+  if (missing.length === 0) return true;
+
+  const msg =
+    `simulator.html が、js/simulator.js より古いようです（見つからない要素: ${missing.map((i) => `#${i}`).join('、')}）。` +
+    '最新の simulator.html（と css/simulator.css）に差し替えて、ブラウザを強制再読み込み（Ctrl+Shift+R）してください。';
+  console.error(msg);
+  let box = document.getElementById('sim-status');
+  if (!box) {
+    box = document.createElement('p');
+    document.body.prepend(box);
+  }
+  box.hidden = false;
+  box.classList.add('is-error');
+  box.textContent = msg;
+  return false;
+}
+
 async function init() {
+  if (!checkPage()) return;
   dom.status = $('#sim-status');
   dom.root = $('#sim-root');
   dom.editor = $('#editor');
