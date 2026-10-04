@@ -1,0 +1,158 @@
+{
+  "id": "stage09",
+  "title": "デジタル署名",
+  "goal": "「Aliceが送った」ことを、誰にでも証明できるようにしよう",
+  "message": "PAY 100",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "observer",
+      "observedMessages": 1,
+      "knownInfo": [],
+      "observationScope": "channel",
+      "attacks": [
+        "tamper",
+        "forge"
+      ]
+    }
+  },
+  "introduces": [
+    "sign",
+    "verify"
+  ],
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "keypair",
+    "pkenc",
+    "pkdec",
+    "hash",
+    "hashcheck",
+    "mac",
+    "maccheck",
+    "sign",
+    "verify"
+  ],
+  "algorithms": [
+    "aes"
+  ],
+  "rsaBits": [
+    2048
+  ],
+  "defaults": {
+    "owner": "alice"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ]
+    },
+    "B": {
+      "require": [
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ],
+      "attackerOverride": {
+        "attacks": [
+          "tamper",
+          "forge",
+          "keyswap"
+        ]
+      },
+      "rules": {
+        "noPreshare": [
+          "pub"
+        ]
+      },
+      "unlock": {
+        "components": [
+          "ca",
+          "certcheck"
+        ]
+      }
+    }
+  },
+  "rating": {
+    "minimalComponents": [
+      "keypair",
+      "sign",
+      "verify",
+      "ca",
+      "certcheck"
+    ]
+  },
+  "guide": {
+    "scene": "契約書を、メールで受け取りました。「確かに Alice が送った」という証拠は、残るでしょうか？ そして、Bob が確かめるために使った「Alice の公開鍵」は、いったい、どこから来たものなのでしょう？",
+    "summary": "秘密鍵で押す、Alice だけのハンコです。送った事実の証拠になります。でも、その確かめ方にも、落とし穴があります。",
+    "sections": [
+      {
+        "h": "署名のしくみ",
+        "p": "Alice が、本文のハッシュ値を、自分の秘密鍵で署名します。Bob は、Alice の公開鍵で、その署名を確かめます。",
+        "code": "Alice: 本文のハッシュを計算 → 自分の秘密鍵で署名\n       → 本文 ＋ 署名 を送る\nBob  : 本文のハッシュを計算\n       Alice の公開鍵で、署名から取り出したハッシュと比べる\n         一致 → Alice の秘密鍵を持つ人が、この本文に署名した"
+      },
+      {
+        "h": "暗号化とは、逆向き",
+        "p": "暗号化は「公開鍵で閉じて、秘密鍵で開ける」でした。署名は、逆で「秘密鍵で押して、公開鍵で確かめる」です。秘密鍵を持っているのは、Alice だけなので、署名は、Alice にしか作れません。"
+      },
+      {
+        "h": "何が守れる？",
+        "p": "書き換えの検知（完全性）、Alice 本人だという確認（真正性）、そして、あとから「送っていない」と言えないこと（否認防止）の、3つを守れます。Objective A は、この3つです。"
+      },
+      {
+        "h": "でも、公開鍵は、どこから？",
+        "p": "Bob は、Alice の公開鍵を、事前には、手に入れられません。通信路で、届けてもらうしかありません。Mallory は、そこに入り込みます。Objective B の Mallory は、これをやる人です。",
+        "code": "Alice ──(Alice の公開鍵)──────▶ Mallory ──(Mallory の公開鍵)──▶ Bob\nAlice ──(本文＋Alice の署名)───▶ Mallory ──(偽の本文＋Mallory の署名)─▶ Bob\n\nBob: 受け取った「Alice の公開鍵」で署名を確かめる → 一致する！\n     （でも、その鍵は、Mallory のもの）"
+      },
+      {
+        "h": "なぜ、気づけない？",
+        "p": "署名も暗号も、計算としては、正しく動いています。ただ、使っている鍵が、本物ではないだけです。鍵が本物かどうかを、鍵自身は、教えてくれません。"
+      },
+      {
+        "h": "ゲームでの組み立て方",
+        "p": "Alice の鍵ペアを置き、秘密鍵を「署名する」に、公開鍵を「署名を検証」につなぎます。鍵ペアの持ち主は「Alice の鍵」にします。Objective B では、公開鍵を、通信路を通して届けます。"
+      }
+    ],
+    "after": {
+      "A": {
+        "learned": "秘密鍵を持たない Mallory は、Alice の署名を作れません。書き換え・なりすまし・「送っていない」という言い逃れを、まとめて防げました。",
+        "question": "でも、Bob が確かめに使う「Alice の公開鍵」が、すり替えられていたら？ 署名は、鍵が本物であることが前提でした。"
+      },
+      "B": {
+        "learned": "公開鍵が通信路を通ると、Mallory に、差し替えられます。「この鍵は、誰のものか」を、鍵自身は、教えてくれません。",
+        "question": "公開鍵が本物だと、第三者が保証してくれる仕組みがあれば、どうでしょう？ その「第三者」は、なぜ信頼できるのでしょう？"
+      }
+    },
+    "hints": [
+      "Alice の鍵ペアを置き、秘密鍵を「署名する」に、公開鍵を「署名を検証」につなぎます。",
+      "鍵ペアの持ち主を「Aliceの鍵」にします。",
+      "Objective B では、公開鍵を、通信路で届けます。すり替えられると、どうなるか見てみましょう。"
+    ]
+  },
+  "lesson": [
+    {
+      "label": "目的",
+      "text": "送信者本人しか持たない「秘密鍵」で署名することで、送信者の証明（成りすまし防止）、改ざん検知（完全性）、および送信事実の証明（否認防止）を達成する。"
+    },
+    {
+      "label": "Alice/Bobの動作",
+      "text": "Aliceは本文のハッシュ値を「自分の秘密鍵」で暗号化（署名）してメッセージと共に送る。Bobは「Aliceの公開鍵」を使って署名を復号・検証する。"
+    },
+    {
+      "label": "Malloryの動作",
+      "text": "本文の改ざんを試みたり、通信の途中に割り込んで「これがAliceの公開鍵です」と偽って自分の公開鍵を送りつける（中間者攻撃 / 鍵すり替え）。"
+    },
+    {
+      "label": "Alice/Bobの課題",
+      "text": "受信した「Aliceの公開鍵」が、本当にAlice本人の公開鍵なのかを単体で保証する手段がない。"
+    },
+    {
+      "label": "Malloryの脅威",
+      "text": "Aliceの秘密鍵を持っていないため正しい署名を作成できず、改ざんや送信事実の否認は完全に防がれる。ただし、公開鍵自体を自分のものにすり替える攻撃の隙が残る。"
+    }
+  ]
+}

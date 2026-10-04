@@ -1,0 +1,139 @@
+{
+  "id": "stage08",
+  "title": "メッセージ認証符号（MAC）",
+  "goal": "書き換えも、なりすましも、見抜けるようにしよう",
+  "message": "PAY 100",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "observer",
+      "observedMessages": 1,
+      "knownInfo": [],
+      "observationScope": "channel",
+      "attacks": [
+        "tamper",
+        "forge"
+      ]
+    }
+  },
+  "introduces": [
+    "mac",
+    "maccheck"
+  ],
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "keypair",
+    "pkenc",
+    "pkdec",
+    "hash",
+    "hashcheck",
+    "mac",
+    "maccheck"
+  ],
+  "algorithms": [
+    "aes"
+  ],
+  "rsaBits": [
+    2048
+  ],
+  "defaults": {
+    "owner": "alice"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "integrity",
+        "authenticity"
+      ]
+    },
+    "B": {
+      "require": [
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ],
+      "unlock": {
+        "components": [
+          "sign",
+          "verify"
+        ]
+      }
+    }
+  },
+  "rating": {
+    "minimalComponents": [
+      "keypair",
+      "sign",
+      "verify"
+    ]
+  },
+  "guide": {
+    "scene": "いつも連絡する相手から、「明日の集合場所を変更します」というメッセージが届きました。本当に、その相手から来たものでしょうか？ そして、あとになって、相手が「そんなメッセージは送っていない」と言ったら、証明できるでしょうか？",
+    "summary": "共通鍵を使った指紋です。書き換えと、なりすましを見抜けます。でも、「証拠」にはなりません。",
+    "sections": [
+      {
+        "h": "MAC: 鍵つきの指紋",
+        "p": "ハッシュ値に、共通鍵を混ぜて計算します。同じ鍵を持つ人だけが、同じ値を計算できます。",
+        "code": "HMAC-SHA256(鍵 \"secret-key\", \"PAY 100\") = cbaeb2118505a640…\nHMAC-SHA256(鍵 \"secret-key\", \"PAY 900\") = 0147d03dbeba2b00…\n\n鍵を知らなければ、「PAY 900」用の正しい値は、計算できない"
+      },
+      {
+        "h": "Mallory が、詰む理由",
+        "p": "Mallory は、鍵を知りません。本文を書き換えても、正しい MAC を、作り直せません。偽のメッセージを作っても、同じです。Bob は、MAC が合わないものを、すべて拒否できます。"
+      },
+      {
+        "h": "何が守れる？",
+        "p": "書き換えに気づけること（完全性）と、鍵を知っている相手から来たこと（真正性）が、同時に確かめられます。Objective A は、この2つです。"
+      },
+      {
+        "h": "でも、「証拠」にならない",
+        "p": "Alice と Bob は、同じ鍵を持っています。だから、MAC は、二人のどちらにも作れます。あとから Alice が「送っていない」と言っても、「Bob が自分で作ったのでは？」という疑いを、第三者に対して、晴らせません。これが、否認防止ができない、ということです。"
+      },
+      {
+        "h": "否認防止に必要なもの",
+        "p": "「Alice にしか作れない印」が必要です。つまり、Alice だけが持つ鍵が、必要になります。"
+      },
+      {
+        "h": "ゲームでの組み立て方",
+        "p": "MAC を付けるときと、照合するときに、同じ共通鍵をつなぎます。Objective B では、新しい部品が使えます。"
+      }
+    ],
+    "after": {
+      "A": {
+        "learned": "鍵を知らない Mallory は、書き換えた本文に合う、正しい MAC を作れません。偽物も、書き換えも、見抜けます。",
+        "question": "でも、同じ鍵を持つ Bob にも、同じ MAC が作れてしまいます。あとから「Alice が送った」と、第三者に証明できるでしょうか？"
+      },
+      "B": {
+        "learned": "「Alice にしか作れない印」があれば、送った事実の証拠になります。そのためには、Alice だけが持つ鍵が、必要です。",
+        "question": "では、その印を確かめる Bob は、何を持っていればいいのでしょう？ Bob も、Alice の秘密を持ってしまったら、Alice だけの印ではなくなります。"
+      }
+    },
+    "hints": [
+      "MAC を付けるときと、照合するときに、同じ共通鍵をつなぎます。",
+      "否認防止には、MAC では足りません。Objective B で、新しい部品を試せます。"
+    ]
+  },
+  "lesson": [
+    {
+      "label": "目的",
+      "text": "共通鍵をハッシュ計算に組み合わせることで、データが途中で書き換えられていないか（完全性）と、秘密鍵を知る正しい相手からのデータか（送信元認証）を同時に確認する。"
+    },
+    {
+      "label": "Alice/Bobの動作",
+      "text": "Aliceはメッセージと秘密の「共通鍵」を掛け合わせてMAC値（指紋）を計算し、メッセージと一緒に送る。Bobも同じ共通鍵でMAC値を再計算し、届いたMAC値と照合する。"
+    },
+    {
+      "label": "Malloryの動作",
+      "text": "メッセージの書き換えや偽データの挿入を試みる。"
+    },
+    {
+      "label": "Alice/Bobの課題",
+      "text": "AliceとBobが「全く同じ共通鍵」を持っているため、第三者に対して「Aliceが書いた」のか「Bobが捏造した」のかを証明できず、送信後のしらばっくれ（否認防止）を防げない。"
+    },
+    {
+      "label": "Malloryの脅威",
+      "text": "秘密の共通鍵を知らないため、メッセージを書き換えても正しいMAC値を計算できず、改ざんやすり替え攻撃が即座にバレて拒否される。"
+    }
+  ]
+}
