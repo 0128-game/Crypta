@@ -11,6 +11,9 @@
   --key: #a35cf0;     /* 鍵 */
   --wire: #c6cde8;    /* 電気が通る前の線 */
   --wire-key: #e4d3fa;
+  --pubc: #e0a500;   /* 公開鍵 */
+  --privc: #c2255c;  /* 秘密鍵・署名 */
+  --authc: #0ca678;  /* ハッシュ・MAC */
 }
 
 /* ---------- 画面全体 ---------- */
@@ -913,6 +916,550 @@
 }
 .result-actions .button-secondary {
   padding: calc(0.5rem - 2px) calc(1.2rem - 2px);
+}
+
+/* ---------- 部品の種類ごとの色 ---------- */
+.node-keypair  { border-color: var(--pubc); background: #fff9e6; }
+.node-pkenc    { border-color: var(--primary); background: #f3f4ff; }
+.node-pkdec    { border-color: var(--ok); background: #effaf4; }
+.node-hash,
+.node-hashcheck,
+.node-mac,
+.node-maccheck { border-color: var(--authc); background: #e6fcf5; }
+.node-sign,
+.node-verify,
+.node-ca,
+.node-certcheck { border-color: var(--privc); background: #fff0f6; }
+.node-tls,
+.node-tlsopen  { border-color: #2b8a3e; background: #ebfbee; }
+.node-vpn,
+.node-vpnopen  { border-color: #0b7285; background: #e3fafc; }
+
+.palette-keypair  { border-color: var(--pubc); }
+.palette-pkenc    { border-color: var(--primary); }
+.palette-pkdec    { border-color: var(--ok); }
+.palette-hash,
+.palette-hashcheck,
+.palette-mac,
+.palette-maccheck { border-color: var(--authc); }
+.palette-sign,
+.palette-verify,
+.palette-ca,
+.palette-certcheck { border-color: var(--privc); }
+.palette-tls,
+.palette-tlsopen  { border-color: #2b8a3e; }
+.palette-vpn,
+.palette-vpnopen  { border-color: #0b7285; }
+
+.node-title {
+  font-size: 0.95rem;
+}
+
+/* 鍵（公開鍵・秘密鍵）のポートと線 */
+.port-type-pub  { border-color: var(--pubc); }
+.port-type-priv { border-color: var(--privc); }
+.edge-pub  .edge-line { stroke: #f1dc9a; stroke-dasharray: 2 8; }
+.edge-priv .edge-line { stroke: #f0b3c9; stroke-dasharray: 2 8; }
+
+/* 部品が増えたので、一覧は折り返して 2〜3 段まで */
+.palette-bar {
+  max-width: min(1080px, calc(100% - 1.5rem));
+}
+.palette {
+  flex-wrap: wrap;
+  max-height: 9.4rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.palette-item {
+  min-width: 6.4rem;
+  padding: 0.3rem 0.75rem;
+}
+.palette-item strong {
+  font-size: 0.85rem;
+}
+.palette-item span {
+  max-width: 11rem;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+/* 部品の目印 */
+.palette-tag {
+  margin-left: 0.4rem;
+  padding: 0 0.45rem;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 800;
+  vertical-align: 0.1em;
+  border-radius: var(--r-pill);
+}
+.tag-new {
+  color: #fff;
+  background: var(--mallory);
+}
+.tag-preview {
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+}
+
+/* 通信路の攻撃者欄 */
+.eve-caps {
+  flex-basis: 100%;
+  line-height: 1.5;
+}
+.eve-row {
+  align-items: flex-start;
+}
+
+/* 条件パネル: このステージで学ぶこと */
+.brief-lesson {
+  margin-top: 0.7rem;
+  background: var(--bg);
+  border-radius: var(--r-md);
+}
+.brief-lesson[hidden] { display: none; }
+.brief-lesson summary {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--primary-deep);
+  cursor: pointer;
+}
+.lesson-list {
+  margin: 0;
+  padding: 0 0.9rem 0.8rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+.lesson-list dt {
+  margin-top: 0.5rem;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+.lesson-list dd {
+  margin: 0;
+}
+.objective-unlock {
+  font-weight: 700;
+  color: var(--primary-deep);
+}
+
+/* 結果: Mallory の攻撃のようす */
+.attack-info {
+  margin-top: 0.75rem;
+  padding: 0.7rem 1rem;
+  background: var(--bg);
+  border-radius: var(--r-md);
+}
+.attack-info h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+.attack-list {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.attack-item::before {
+  content: "● ";
+}
+.attack-item.is-good::before { color: var(--ok); }
+.attack-item.is-bad::before  { color: var(--mallory); }
+
+/* ---------- 解説 ---------- */
+.brief-buttons {
+  display: flex;
+  flex: none;
+  gap: 0.4rem;
+}
+.brief-guide {
+  color: #fff;
+  background: var(--primary);
+}
+.brief-guide[hidden] { display: none; }
+
+.guide {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(38, 49, 82, 0.5);
+}
+.guide[hidden] { display: none; }
+
+.guide-card {
+  display: flex;
+  flex-direction: column;
+  width: min(680px, 100%);
+  max-height: 88vh;
+  max-height: 88dvh;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: 0 20px 60px rgba(38, 49, 82, 0.35);
+}
+.guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.4rem 0.6rem;
+}
+.page-simulator .guide-head h2 {
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+.guide-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  font: inherit;
+  font-weight: 800;
+  color: var(--ink-soft);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.guide-close:hover { color: #fff; background: var(--ink-soft); }
+
+.guide-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 1.4rem 0.6rem;
+  overflow: auto;
+  line-height: 1.8;
+}
+.guide-lead {
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+  border-radius: var(--r-md);
+}
+.guide-section {
+  margin-top: 1rem;
+}
+.page-simulator .guide-section h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+.guide-section p {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+.guide-parts {
+  margin-top: 1.2rem;
+}
+.page-simulator .guide-parts h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+.guide-part {
+  margin-bottom: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--bg);
+  border-left: 5px solid var(--primary);
+  border-radius: var(--r-md);
+}
+.guide-part strong {
+  font-size: 0.95rem;
+}
+.guide-part span {
+  margin-left: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.guide-part p {
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+.guide-more {
+  margin-top: 0.8rem;
+}
+.guide-more summary {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--primary-deep);
+  cursor: pointer;
+}
+.guide-more .guide-part {
+  margin-top: 0.5rem;
+  border-left-color: var(--line);
+}
+.guide-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.8rem 1.4rem 1.1rem;
+}
+
+/* 結果: 解説・ヒント */
+.explain {
+  margin-top: 0.75rem;
+  padding: 0.7rem 1rem;
+  background: var(--primary-soft);
+  border-radius: var(--r-md);
+}
+.explain h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--primary-deep);
+}
+.explain p,
+.explain li {
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+.explain ul {
+  display: grid;
+  gap: 0.2rem;
+  padding-left: 1.2rem;
+  list-style: disc;
+}
+.explain.is-hint {
+  background: var(--sun-soft);
+}
+.explain.is-hint h4 {
+  color: #8a6200;
+}
+
+/* ---------- 用語（文中のリンク・用語集） ---------- */
+.term {
+  display: inline;
+  padding: 0;
+  font: inherit;
+  color: var(--primary-deep);
+  background: none;
+  border: none;
+  border-bottom: 2px dotted var(--primary);
+  border-radius: 0;
+  cursor: help;
+}
+.term:hover {
+  background: var(--primary-soft);
+}
+
+.brief-glossary {
+  color: var(--primary-deep);
+}
+.brief-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.brief-group-head h2 {
+  margin: 0;
+}
+.brief-group-head .term {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.term-dialog {
+  z-index: 70;
+}
+.term-cat {
+  margin: 0 0 0.1rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--primary-deep);
+}
+.term-dialog .guide-section p,
+.guide-section p,
+.guide-part p {
+  white-space: pre-line;
+}
+.term-see {
+  margin-top: 1.1rem;
+}
+.page-simulator .term-see h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+.term-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.term-chip {
+  padding: 0.15rem 0.8rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+  border: none;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+}
+.term-chip:hover {
+  background: #d9deff;
+}
+.term-dialog .guide-foot {
+  gap: 0.6rem;
+}
+
+.glossary-search {
+  width: 100%;
+  margin-bottom: 0.4rem;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: var(--r-pill);
+}
+.glossary-search:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+.glossary-group {
+  margin-top: 1rem;
+}
+.glossary-group[hidden] { display: none; }
+.page-simulator .glossary-group h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+.glossary-items {
+  display: grid;
+  gap: 0.4rem;
+}
+.glossary-items li[hidden] { display: none; }
+.glossary-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.9rem;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: var(--bg);
+  border: none;
+  border-left: 5px solid var(--primary-soft);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+.glossary-item:hover {
+  border-left-color: var(--primary);
+  background: var(--primary-soft);
+}
+.glossary-item strong {
+  display: block;
+  font-size: 0.92rem;
+}
+.glossary-item span {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+/* 部品の「?」ボタン */
+.node-help {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--primary-deep);
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid var(--primary-soft);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.node-help:hover {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* 攻撃者の環境の説明 */
+.caps dd small {
+  display: block;
+  margin-top: 0.05rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.caps dt {
+  line-height: 1.6;
+}
+.caps dt .term {
+  font-size: inherit;
+}
+
+/* ---------- 解説: 場面・手順や計算例 ---------- */
+.guide-scene {
+  margin: 0.2rem 0 0.9rem;
+  padding: 0.8rem 1.1rem;
+  background: var(--sun-soft);
+  border-left: 6px solid var(--sun);
+  border-radius: var(--r-md);
+}
+.guide-scene strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #8a6200;
+}
+.guide-scene p {
+  font-size: 0.92rem;
+  line-height: 1.85;
+  color: var(--ink);
+}
+
+.guide-code {
+  margin: 0.55rem 0 0;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono CJK JP", monospace;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  color: #eef1ff;
+  white-space: pre;
+  background: #263152;
+  border-radius: var(--r-md);
+}
+
+.explain p + p {
+  margin-top: 0.5rem;
+}
+.explain strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--primary-deep);
+}
+.explain-question {
+  padding: 0.5rem 0.8rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--r-md);
 }
 
 /* ---------- 狭い画面 ---------- */
