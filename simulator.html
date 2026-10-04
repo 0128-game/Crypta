@@ -46,13 +46,25 @@
       <aside class="brief-panel" id="brief-panel" aria-label="ステージの条件">
         <div class="brief-bar">
           <h1 id="stage-title"></h1>
-          <button type="button" class="brief-toggle" id="brief-toggle" aria-expanded="true" aria-controls="brief-body">隠す</button>
+          <div class="brief-buttons">
+            <button type="button" class="brief-toggle brief-guide" id="guide-open" hidden>解説</button>
+            <button type="button" class="brief-toggle brief-glossary" id="glossary-open">用語</button>
+            <button type="button" class="brief-toggle" id="brief-toggle" aria-expanded="true" aria-controls="brief-body">隠す</button>
+          </div>
         </div>
         <div class="brief-body" id="brief-body">
           <p class="brief-goal" id="stage-goal"></p>
 
+          <details class="brief-lesson" id="brief-lesson">
+            <summary>このステージで学ぶこと</summary>
+            <dl class="lesson-list" id="lesson-list"></dl>
+          </details>
+
           <section class="brief-group" aria-labelledby="attacker-title">
-            <h2 id="attacker-title">攻撃者</h2>
+            <div class="brief-group-head">
+              <h2 id="attacker-title">攻撃者</h2>
+              <button type="button" class="term" data-term="env">環境とは？</button>
+            </div>
             <div class="brief-badges" id="attacker-badges"></div>
             <dl class="caps" id="attacker-caps"></dl>
           </section>
@@ -88,6 +100,52 @@
 
     </div>
   </main>
+
+  <!-- 用語集（「用語」ボタン） -->
+  <div class="guide" id="glossary" hidden role="dialog" aria-modal="true" aria-labelledby="glossary-title">
+    <div class="guide-card">
+      <div class="guide-head">
+        <h2 id="glossary-title">用語集</h2>
+        <button type="button" class="guide-close" id="glossary-close" aria-label="用語集を閉じる">×</button>
+      </div>
+      <div class="guide-body">
+        <input type="search" class="glossary-search" id="glossary-search" placeholder="用語をさがす（例: AES）" aria-label="用語をさがす">
+        <div id="glossary-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 用語の説明（文中の下線つきの言葉・「?」ボタンで出る） -->
+  <div class="guide term-dialog" id="term-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="term-title">
+    <div class="guide-card">
+      <div class="guide-head">
+        <div>
+          <p class="term-cat" id="term-cat"></p>
+          <h2 id="term-title"></h2>
+        </div>
+        <button type="button" class="guide-close" id="term-close" aria-label="説明を閉じる">×</button>
+      </div>
+      <div class="guide-body" id="term-body"></div>
+      <div class="guide-foot">
+        <button type="button" class="button button-secondary" id="term-glossary">用語集を開く</button>
+        <button type="button" class="button button-primary" id="term-done">とじる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ステージの解説（最初に開いたとき・「解説」ボタンで出る） -->
+  <div class="guide" id="guide" hidden role="dialog" aria-modal="true" aria-labelledby="guide-title">
+    <div class="guide-card">
+      <div class="guide-head">
+        <h2 id="guide-title"></h2>
+        <button type="button" class="guide-close" id="guide-close" aria-label="解説を閉じる">×</button>
+      </div>
+      <div class="guide-body" id="guide-body"></div>
+      <div class="guide-foot">
+        <button type="button" class="button button-primary" id="guide-start">あそぶ</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 読み込み失敗の診断用: スクリプトが動かないとき、画面にエラーを出す -->
   <script>
