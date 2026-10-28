@@ -1,0 +1,145 @@
+{
+  "id": "stage09",
+  "message": "PAY 100",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "observer",
+      "looksFor": [
+        "messages"
+      ],
+      "attacks": [
+        "tamper",
+        "forge"
+      ]
+    }
+  },
+  "introduces": [
+    "sign",
+    "verify"
+  ],
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "keypair",
+    "pkenc",
+    "pkdec",
+    "hash",
+    "hashcheck",
+    "mac",
+    "maccheck",
+    "sign",
+    "verify"
+  ],
+  "algorithms": [
+    "aes"
+  ],
+  "rsaBits": [
+    2048
+  ],
+  "defaults": {
+    "owner": "alice"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ]
+    },
+    "B": {
+      "require": [
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ],
+      "attackerOverride": {
+        "attacks": [
+          "tamper",
+          "forge",
+          "keyswap"
+        ]
+      },
+      "unlock": {
+        "components": [
+          "ca",
+          "certcheck"
+        ]
+      }
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "kp": [
+          "keypair",
+          {
+            "owner": "alice",
+            "bits": 2048
+          },
+          "alice"
+        ],
+        "s": [
+          "sign",
+          {},
+          "alice"
+        ],
+        "v": [
+          "verify",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>s.data",
+        "kp.priv>s.priv",
+        "s.out>v.data",
+        "kp.pub>v.pub",
+        "v.out>bob.in"
+      ]
+    },
+    "B": {
+      "nodes": {
+        "kp": [
+          "keypair",
+          {
+            "owner": "alice",
+            "bits": 2048
+          },
+          "alice"
+        ],
+        "s": [
+          "sign",
+          {},
+          "alice"
+        ],
+        "ca": [
+          "ca",
+          {},
+          "alice"
+        ],
+        "v": [
+          "verify",
+          {},
+          "bob"
+        ],
+        "cc": [
+          "certcheck",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>s.data",
+        "kp.priv>s.priv",
+        "s.out>v.data",
+        "kp.pub>ca.pub",
+        "ca.out>cc.data",
+        "cc.pub>v.pub",
+        "v.out>bob.in"
+      ]
+    }
+  }
+}

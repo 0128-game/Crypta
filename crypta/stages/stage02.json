@@ -1,0 +1,104 @@
+{
+  "id": "stage02",
+  "attacker": {
+    "type": "eve",
+    "capabilities": {
+      "compute": "bruteforce",
+      "looksFor": [
+        "messages"
+      ]
+    }
+  },
+  "introduces": [],
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt"
+  ],
+  "algorithms": [
+    "caesar",
+    "substitution"
+  ],
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality"
+      ]
+    },
+    "B": {
+      "require": [
+        "confidentiality"
+      ],
+      "attackerOverride": {
+        "compute": "frequency"
+      },
+      "unlock": {
+        "algorithms": [
+          "enigma"
+        ]
+      }
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "substitution"
+          },
+          "alice"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "substitution"
+          },
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>enc.data",
+        "enc.out>dec.data",
+        "dec.out>bob.in",
+        "k.out>enc.key",
+        "k.out>dec.key"
+      ]
+    },
+    "B": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "enigma"
+          },
+          "alice"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "enigma"
+          },
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>enc.data",
+        "enc.out>dec.data",
+        "dec.out>bob.in",
+        "k.out>enc.key",
+        "k.out>dec.key"
+      ]
+    }
+  }
+}

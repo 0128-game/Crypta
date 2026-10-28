@@ -1,0 +1,105 @@
+{
+  "id": "stage03",
+  "attacker": {
+    "type": "eve",
+    "capabilities": {
+      "compute": "frequency",
+      "looksFor": [
+        "messages"
+      ]
+    }
+  },
+  "introduces": [],
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt"
+  ],
+  "algorithms": [
+    "caesar",
+    "substitution",
+    "enigma"
+  ],
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality"
+      ]
+    },
+    "B": {
+      "require": [
+        "confidentiality"
+      ],
+      "attackerOverride": {
+        "compute": "cryptanalysis"
+      },
+      "unlock": {
+        "algorithms": [
+          "aes"
+        ]
+      }
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "enigma"
+          },
+          "alice"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "enigma"
+          },
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>enc.data",
+        "enc.out>dec.data",
+        "dec.out>bob.in",
+        "k.out>enc.key",
+        "k.out>dec.key"
+      ]
+    },
+    "B": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "aes"
+          },
+          "alice"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "aes"
+          },
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>enc.data",
+        "enc.out>dec.data",
+        "dec.out>bob.in",
+        "k.out>enc.key",
+        "k.out>dec.key"
+      ]
+    }
+  }
+}

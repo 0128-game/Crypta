@@ -1,0 +1,119 @@
+{
+  "id": "stage12",
+  "message": "PAY 100",
+  "attacker": {
+    "type": "eve+mallory",
+    "capabilities": {
+      "compute": "supercomputer",
+      "looksFor": [
+        "messages",
+        "keys"
+      ],
+      "attacks": [
+        "tamper",
+        "forge",
+        "keyswap",
+        "replay"
+      ]
+    }
+  },
+  "introduces": [
+    "vpn",
+    "vpnopen"
+  ],
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "keypair",
+    "pkenc",
+    "pkdec",
+    "hash",
+    "hashcheck",
+    "mac",
+    "maccheck",
+    "sign",
+    "verify",
+    "ca",
+    "certcheck",
+    "tls",
+    "tlsopen",
+    "vpn",
+    "vpnopen"
+  ],
+  "algorithms": [
+    "aes"
+  ],
+  "rsaBits": [
+    2048
+  ],
+  "defaults": {
+    "owner": "alice"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality",
+        "integrity",
+        "authenticity",
+        "freshness",
+        "metadata"
+      ]
+    },
+    "B": {
+      "require": [
+        "confidentiality",
+        "integrity",
+        "authenticity",
+        "freshness",
+        "metadata"
+      ],
+      "rules": {
+        "onlyComponents": [
+          "vpn",
+          "vpnopen"
+        ]
+      }
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "v": [
+          "vpn",
+          {},
+          "alice"
+        ],
+        "vo": [
+          "vpnopen",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>v.data",
+        "v.out>vo.data",
+        "vo.out>bob.in"
+      ]
+    },
+    "B": {
+      "nodes": {
+        "v": [
+          "vpn",
+          {},
+          "alice"
+        ],
+        "vo": [
+          "vpnopen",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>v.data",
+        "v.out>vo.data",
+        "vo.out>bob.in"
+      ]
+    }
+  }
+}

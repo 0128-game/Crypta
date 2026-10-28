@@ -1,0 +1,120 @@
+{
+  "id": "stage08",
+  "message": "PAY 100",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "observer",
+      "looksFor": [
+        "messages"
+      ],
+      "attacks": [
+        "tamper",
+        "forge"
+      ]
+    }
+  },
+  "introduces": [
+    "mac",
+    "maccheck"
+  ],
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "keypair",
+    "pkenc",
+    "pkdec",
+    "hash",
+    "hashcheck",
+    "mac",
+    "maccheck"
+  ],
+  "algorithms": [
+    "aes"
+  ],
+  "rsaBits": [
+    2048
+  ],
+  "defaults": {
+    "owner": "alice"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "integrity",
+        "authenticity"
+      ]
+    },
+    "B": {
+      "require": [
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ],
+      "unlock": {
+        "components": [
+          "sign",
+          "verify"
+        ]
+      }
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "m": [
+          "mac",
+          {},
+          "alice"
+        ],
+        "mc": [
+          "maccheck",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>m.data",
+        "k.out>m.key",
+        "m.out>mc.data",
+        "k.out>mc.key",
+        "mc.out>bob.in"
+      ]
+    },
+    "B": {
+      "nodes": {
+        "kp": [
+          "keypair",
+          {
+            "owner": "alice",
+            "bits": 2048
+          },
+          "alice"
+        ],
+        "s": [
+          "sign",
+          {},
+          "alice"
+        ],
+        "v": [
+          "verify",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>s.data",
+        "kp.priv>s.priv",
+        "s.out>v.data",
+        "kp.pub>v.pub",
+        "v.out>bob.in"
+      ]
+    }
+  }
+}
