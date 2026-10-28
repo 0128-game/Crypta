@@ -1,0 +1,231 @@
+{
+  "id": "stage07",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "supercomputer",
+      "looksFor": [
+        "messages"
+      ],
+      "attacks": [
+        "tamper",
+        "forge",
+        "keyswap"
+      ]
+    }
+  },
+  "introduces": [
+    "ca",
+    "certcheck"
+  ],
+  "components": [
+    "sealed",
+    "unsealed",
+    "keypair",
+    "sign",
+    "verify",
+    "ca",
+    "certcheck"
+  ],
+  "algorithms": [
+    "aes"
+  ],
+  "rsaBits": [
+    2048
+  ],
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality",
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ]
+    },
+    "EX": {
+      "require": [
+        "confidentiality",
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ],
+      "attackerOverride": {
+        "looksFor": [
+          "messages",
+          "keys"
+        ]
+      },
+      "rules": {
+        "largeBody": true,
+        "message": "PHOTO.JPG",
+        "msgKind": "photo"
+      },
+      "lock": {
+        "components": [
+          "sealed",
+          "unsealed"
+        ]
+      },
+      "unlock": {
+        "components": [
+          "key",
+          "encrypt",
+          "decrypt",
+          "pkenc",
+          "pkdec"
+        ]
+      }
+    }
+  },
+  "demo": {
+    "attackerOverride": {
+      "attacks": [
+        "replay"
+      ]
+    },
+    "require": [
+      "freshness"
+    ]
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "kp": [
+          "keypair",
+          {
+            "owner": "alice",
+            "bits": 2048
+          },
+          "alice"
+        ],
+        "sg": [
+          "sign",
+          {},
+          "alice"
+        ],
+        "ca": [
+          "ca",
+          {},
+          "alice"
+        ],
+        "s": [
+          "sealed",
+          {},
+          "alice"
+        ],
+        "u": [
+          "unsealed",
+          {},
+          "bob"
+        ],
+        "v": [
+          "verify",
+          {},
+          "bob"
+        ],
+        "cc": [
+          "certcheck",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>sg.data",
+        "kp.priv>sg.priv",
+        "sg.out>s.data",
+        "s.out>u.data",
+        "u.out>v.data",
+        "kp.pub>ca.pub",
+        "ca.out>cc.data",
+        "cc.pub>v.pub",
+        "v.out>bob.in"
+      ]
+    },
+    "EX": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "aes"
+          },
+          "alice"
+        ],
+        "pe": [
+          "pkenc",
+          {},
+          "alice"
+        ],
+        "kpa": [
+          "keypair",
+          {
+            "owner": "alice",
+            "bits": 2048
+          },
+          "alice"
+        ],
+        "sg": [
+          "sign",
+          {},
+          "alice"
+        ],
+        "ca": [
+          "ca",
+          {},
+          "alice"
+        ],
+        "kpb": [
+          "keypair",
+          {
+            "owner": "bob",
+            "bits": 2048
+          },
+          "bob"
+        ],
+        "pd": [
+          "pkdec",
+          {},
+          "bob"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "aes"
+          },
+          "bob"
+        ],
+        "v": [
+          "verify",
+          {},
+          "bob"
+        ],
+        "cc": [
+          "certcheck",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>sg.data",
+        "kpa.priv>sg.priv",
+        "sg.out>enc.data",
+        "k.out>enc.key",
+        "k.out>pe.data",
+        "kpb.pub>pe.pub",
+        "enc.out>dec.data",
+        "pe.out>pd.data",
+        "kpa.pub>ca.pub",
+        "ca.out>cc.data",
+        "kpb.priv>pd.priv",
+        "pd.out>dec.key",
+        "dec.out>v.data",
+        "cc.pub>v.pub",
+        "v.out>bob.in"
+      ]
+    }
+  }
+}

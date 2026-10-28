@@ -1,0 +1,74 @@
+{
+  "id": "stage02",
+  "attacker": {
+    "type": "eve",
+    "capabilities": {
+      "compute": "frequency",
+      "looksFor": [
+        "messages"
+      ]
+    }
+  },
+  "components": [
+    "handkey",
+    "encrypt",
+    "decrypt"
+  ],
+  "algorithms": [
+    "caesar",
+    "substitution",
+    "enigma"
+  ],
+  "rules": {
+    "msgKind": "letter",
+    "message": "DEAR BOB THE MEETING IS AT THE OLD BRIDGE AT NOON PLEASE COME ALONE ALICE"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality"
+      ]
+    }
+  },
+  "demo": {
+    "rules": {
+      "msgKind": "formula",
+      "message": "WETTERBERICHT NICHTS ZU MELDEN"
+    },
+    "require": [
+      "confidentiality"
+    ]
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "k": [
+          "handkey",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "enigma"
+          },
+          "alice"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "enigma"
+          },
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>enc.data",
+        "enc.out>dec.data",
+        "dec.out>bob.in",
+        "k.out>enc.key",
+        "k.out>dec.key"
+      ]
+    }
+  }
+}

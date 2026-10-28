@@ -1,0 +1,79 @@
+{
+  "id": "stage08",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "supercomputer",
+      "looksFor": [
+        "messages"
+      ],
+      "attacks": [
+        "replay"
+      ]
+    }
+  },
+  "introduces": [
+    "seqstamp",
+    "seqcheck"
+  ],
+  "components": [
+    "sealed",
+    "unsealed",
+    "seqstamp",
+    "seqcheck"
+  ],
+  "algorithms": [],
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality",
+        "freshness"
+      ]
+    }
+  },
+  "demo": {
+    "attackerOverride": {
+      "attacks": [
+        "tamper",
+        "forge"
+      ]
+    },
+    "require": [
+      "integrity",
+      "authenticity"
+    ]
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "q": [
+          "seqstamp",
+          {},
+          "alice"
+        ],
+        "s": [
+          "sealed",
+          {},
+          "alice"
+        ],
+        "u": [
+          "unsealed",
+          {},
+          "bob"
+        ],
+        "qc": [
+          "seqcheck",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>q.data",
+        "q.out>s.data",
+        "s.out>u.data",
+        "u.out>qc.data",
+        "qc.out>bob.in"
+      ]
+    }
+  }
+}
