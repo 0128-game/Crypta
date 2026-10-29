@@ -1,0 +1,101 @@
+{
+  "id": "stage04",
+  "attacker": {
+    "type": "eve",
+    "capabilities": {
+      "compute": "bruteforce",
+      "looksFor": [
+        "messages",
+        "keys"
+      ]
+    }
+  },
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "keypair",
+    "pkenc",
+    "pkdec"
+  ],
+  "algorithms": [
+    "caesar",
+    "aes"
+  ],
+  "rules": {
+    "largeBody": true,
+    "message": "PHOTO.JPG",
+    "msgKind": "photo"
+  },
+  "carry": {
+    "from": "previous",
+    "start": "bare"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality"
+      ]
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "aes"
+          },
+          "alice"
+        ],
+        "pe": [
+          "pkenc",
+          {},
+          "alice"
+        ],
+        "kbpub": [
+          "pubkey",
+          {
+            "pair": "b"
+          },
+          "public"
+        ],
+        "kbpriv": [
+          "privkey",
+          {
+            "pair": "b"
+          },
+          "bob"
+        ],
+        "pd": [
+          "pkdec",
+          {},
+          "bob"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "aes"
+          },
+          "bob"
+        ]
+      },
+      "edges": [
+        "k.out>enc.key",
+        "k.out>pe.data",
+        "kbpub.out>pe.pub",
+        "enc.out>dec.data",
+        "pe.out>pd.data",
+        "kbpriv.out>pd.priv",
+        "pd.out>dec.key",
+        "alice.out>enc.data",
+        "dec.out>bob.in"
+      ]
+    }
+  }
+}

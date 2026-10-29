@@ -1,0 +1,78 @@
+{
+  "id": "stage10",
+  "message": "PAY 100",
+  "attacker": {
+    "type": "eve+mallory",
+    "capabilities": {
+      "compute": "supercomputer",
+      "looksFor": [
+        "messages",
+        "keys"
+      ],
+      "attacks": [
+        "tamper",
+        "forge",
+        "keyswap",
+        "replay"
+      ]
+    }
+  },
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "keypair",
+    "pkenc",
+    "pkdec",
+    "hash",
+    "hashcheck",
+    "mac",
+    "maccheck",
+    "sign",
+    "verify",
+    "ca",
+    "certcheck",
+    "seqstamp",
+    "seqcheck",
+    "tls",
+    "tlsopen"
+  ],
+  "algorithms": [
+    "caesar",
+    "aes"
+  ],
+  "carry": {
+    "from": "none"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality",
+        "integrity",
+        "authenticity",
+        "freshness"
+      ]
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "t": [
+          "tls",
+          {},
+          "alice"
+        ],
+        "to": [
+          "tlsopen",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>t.data",
+        "t.out>to.data",
+        "to.out>bob.in"
+      ]
+    }
+  }
+}

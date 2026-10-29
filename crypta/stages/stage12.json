@@ -1,0 +1,53 @@
+{
+  "id": "stage12",
+  "attacker": {
+    "type": "eve+mallory",
+    "capabilities": {
+      "compute": "supercomputer",
+      "looksFor": [
+        "messages",
+        "keys"
+      ],
+      "attacks": [
+        "tamper",
+        "forge",
+        "keyswap",
+        "replay"
+      ]
+    }
+  },
+  "components": [],
+  "algorithms": [
+    "aes"
+  ],
+  "carry": {
+    "from": "previous"
+  },
+  "epilogue": true,
+  "objectives": {
+    "A": {
+      "require": []
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "t": [
+          "tls",
+          {},
+          "alice"
+        ],
+        "to": [
+          "tlsopen",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>t.data",
+        "t.out>to.data",
+        "to.out>bob.in"
+      ]
+    }
+  }
+}
