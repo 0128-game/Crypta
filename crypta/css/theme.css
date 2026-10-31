@@ -1,0 +1,344 @@
+/* ==========================================================
+   CRYPTA theme.css  — 見た目の、まとめ（最後に読み込む）
+   方針: 「紙のような温かさ × 深い藍色 × 少しレトロな情報技術」
+     ・地は、生成り。骨組み（線・文字）は、深い藍。主役の色は、黄色だけ。
+     ・キャラクターは、それぞれ、決まった色（Alice＝青、Bob＝青緑、Eve＝くすんだ青紫、Mallory＝紅）
+     ・影は、つけない。うすい色（パステル）も、使わない。
+     ・線は、細め（1〜2px）。角は、少しだけ丸い（4px）。
+   色や形を変えたいときは、まず、下の「トークン」を、書き換える。
+   ========================================================== */
+
+:root {
+  /* 地・面・文字 */
+  --bg: #F2EEE4;            /* 生成り（ページの地） */
+  --surface: #FFFCF5;       /* パネルの、温かみのある白 */
+  --ink: #263650;           /* 深い藍（線・見出し・文字） */
+  --ink-soft: #657085;      /* 灰色寄りの藍（説明文） */
+  --line: #263650;
+
+  /* ブランド（黄色は、主役。くすませない） */
+  --sun: #F3C63F;
+  --gold: #D9AF3D;
+
+  /* キャラクターの色（固定） */
+  --alice: #53679B;
+  --bob: #347C79;
+  --eve: #747093;
+  --mallory: #A65361;
+
+  /* 役割の色 */
+  --primary: var(--alice);
+  --primary-deep: var(--ink);
+  --ok: #3F8A5C;            /* 成功・完了 */
+  --danger: var(--mallory); /* 注意・エラー */
+
+  /* うすい色は、使わない（面の色は、白か、生成り） */
+  --primary-soft: var(--surface);
+  --eve-soft: var(--surface);
+  --mallory-soft: var(--surface);
+  --sun-soft: var(--surface);
+  --ok-soft: var(--surface);
+
+  /* 角・影 */
+  --r-lg: 4px;
+  --r-md: 4px;
+  --r-pill: 4px;
+  --shadow-soft: none;
+  --shadow-lift: none;
+
+  /* 線の太さ */
+  --bw: 2px;
+  --bw-s: 1.5px;
+
+  /* 書体 */
+  --font: "BIZ UDPGothic", "Yu Gothic UI", "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "BIZ UDGothic", monospace;
+}
+
+/* ---------- 影・ぼかしは、なし ---------- */
+*, *::before, *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.character .glow, .attacker-figure, .node-figure, svg.character { filter: none !important; }
+svg path, svg circle, svg rect, svg g, svg line { filter: none !important; }
+
+/* ---------- 全体（本文は 16px を基準） ---------- */
+html { font-size: 16px; }
+body {
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(38, 54, 80, 0.14) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  font-weight: 500;
+}
+h1, h2, h3 { color: var(--ink); font-weight: 800; letter-spacing: 0.01em; }
+p, li { color: inherit; }
+.stage-goal, .hero-lead, .detail-lead, .chars-lead, .how-to-list p { color: var(--ink-soft); }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+
+/* ---------- ヘッダー ---------- */
+.site-logo {
+  display: inline-block;
+  padding: 0.05rem 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+  background: var(--sun);
+  border: var(--bw) solid var(--ink);
+  border-radius: 4px;
+}
+.header-link {
+  padding: 0 0.2rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: transparent;
+  border-radius: 0;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--gold);
+}
+.header-link:hover { background: var(--sun); }
+.site-progress { color: var(--ink); background: var(--surface); border: var(--bw-s) solid var(--ink); border-radius: 4px; font-weight: 700; }
+
+/* ---------- ボタン（メイン = 黄色の塗り、サブ = 白＋藍の線） ---------- */
+.button {
+  border: var(--bw) solid var(--ink);
+  border-radius: 4px;
+  transition: background 0.08s, color 0.08s;
+}
+.button-primary { color: var(--ink); background: var(--sun); }
+.button-secondary { color: var(--ink); background: var(--surface); padding: 0.85rem 2rem; }
+.button:hover { transform: none; color: var(--surface); background: var(--ink); }
+.button:active { transform: translateY(1px); }
+.button[disabled] { opacity: 0.45; }
+.button[disabled]:hover { color: var(--ink); background: var(--surface); }
+/* 控えめなボタン（やり直す・想定解・事件を見る など） */
+.button-quiet { padding: 0.4rem 0.9rem; font-size: 0.85rem; font-weight: 700; border-width: var(--bw-s); }
+
+/* ---------- バッジ・ラベル ---------- */
+.badge { border: var(--bw-s) solid var(--ink); border-radius: 4px; font-weight: 700; }
+.badge-eve { color: #fff; background: var(--eve); }
+.badge-mallory { color: #fff; background: var(--mallory); }
+
+/* ---------- トップページ ---------- */
+.hero {
+  background: var(--sun);
+  border: var(--bw) solid var(--ink);
+  border-radius: 4px;
+}
+.hero::before, .hero::after { display: none; }
+.hero h1 { font-weight: 800; letter-spacing: 0; }
+.hero-lead { color: var(--ink); font-weight: 600; }
+.hero .button-primary { color: var(--surface); background: var(--ink); }
+.hero .button-primary:hover { color: var(--ink); background: var(--surface); }
+
+/* 「遊び方」と「ステージ」は、同じ、カードの見た目 */
+.how-to-list li, .how-to-note, .stage-card {
+  background: var(--surface);
+  border: var(--bw) solid var(--ink);
+  border-radius: 4px;
+}
+.how-to-list li::before { border-radius: 4px; }
+.stage-card:not(.is-locked):hover { background: var(--sun); }
+.stage-card.is-locked { background: transparent; border-style: dashed; border-color: var(--ink-soft); color: var(--ink-soft); }
+.stage-card.is-cleared { border-left-width: var(--bw); }  /* 緑の太い縦線は、やめた。クリアは、右上の小さな表示で示す */
+.stage-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+.stage-number { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 800; color: var(--ink); background: transparent; border: var(--bw-s) solid var(--ink); border-radius: 4px; }
+.stage-title { font-size: 1.3rem; font-weight: 800; line-height: 1.4; }   /* 学習内容（タイトル）が、主役 */
+.stage-card.is-locked .stage-number { border-style: dashed; }
+.stage-clear, .stage-ex, .stage-rating, .rating {
+  padding: 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--ink);
+  background: transparent;
+  border: var(--bw-s) solid var(--ink);
+  border-radius: 4px;
+}
+/* 学習内容の、まとまりの見出し */
+.stage-group { grid-column: 1 / -1; margin-top: 0.8rem; }
+.stage-group:first-child { margin-top: 0; }
+.stage-group h3 { padding-bottom: 0.25rem; font-size: 1rem; font-weight: 800; color: var(--ink); border-bottom: var(--bw) solid var(--ink); }
+
+/* ---------- シミュレーター: パネル ---------- */
+.brief-panel, .palette-bar, .result, .guide-card, .toast, .coach, .sim-status, .zone-log {
+  background: var(--surface);
+  border: var(--bw) solid var(--ink);
+  border-radius: 4px;
+}
+.demo-banner { color: var(--surface); background: var(--ink); border: var(--bw) solid var(--ink); border-radius: 4px; }
+.demo-banner.is-bad { background: var(--mallory); color: #fff; }
+.demo-banner.is-safe { background: var(--ok); color: #fff; }
+.sim-status.is-error { color: #fff; background: var(--mallory); }
+
+/* チュートリアルの案内: 作業する場所（まん中）を、隠さない。右下に、固定する */
+.coach {
+  left: auto;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  width: min(340px, 32vw);
+  padding: 0.7rem 1rem 0.8rem;
+  border-color: var(--gold);
+  border-width: var(--bw);
+  transform: none;
+}
+.coach-step { color: var(--ink-soft); }
+.coach-text { font-size: 0.95rem; }
+@media (max-width: 1000px) { .coach { top: 4.4rem; bottom: auto; width: min(340px, 60vw); } }
+
+/* ---------- ゾーン: うすい斜線と、細い壁 ---------- */
+.zone-alice, .zone-bob { background: transparent; border: 0; }
+.zone-public {
+  background: repeating-linear-gradient(135deg, rgba(38, 54, 80, 0.07) 0 1px, transparent 1px 14px);
+  border: 0;
+}
+.zone-public.is-breached { background: repeating-linear-gradient(135deg, rgba(166, 83, 97, 0.35) 0 2px, transparent 2px 14px); }
+.zone-public.is-safe { background: repeating-linear-gradient(135deg, rgba(63, 138, 92, 0.35) 0 2px, transparent 2px 14px); }
+.zone-wall {
+  background: var(--ink-soft);
+  border-left: var(--bw) solid var(--ink);
+  border-right: var(--bw) solid var(--ink);
+}
+.zone-wall.is-broken {
+  background: repeating-linear-gradient(0deg, transparent 0 16px, var(--ink-soft) 16px 22px, transparent 22px 38px);
+  border-color: transparent;
+  opacity: 0.55;
+}
+.wall-gate rect { fill: var(--surface); stroke: var(--ink); stroke-width: 2.5; }
+.zone-tag { padding: 0.1rem 0.8rem; font-weight: 800; border: var(--bw-s) solid var(--ink); border-radius: 4px; background: var(--surface); color: var(--ink); }
+.zone-tag-alice { color: #fff; background: var(--alice); }
+.zone-tag-public { color: var(--ink); background: var(--surface); border-style: dashed; }
+.zone-tag-bob { color: #fff; background: var(--bob); }
+
+/* ボード */
+.board {
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(38, 54, 80, 0.2) 1.2px, transparent 1.4px);
+  background-size: 24px 24px;
+}
+/* 「通信の道」の案内（線が、まだ、1本もないとき） */
+.guide-line { fill: none; stroke: var(--ink-soft); stroke-width: 3; stroke-dasharray: 2 11; stroke-linecap: round; opacity: 0.6; }
+.guide-text { font-size: 15px; font-weight: 800; fill: var(--ink-soft); text-anchor: middle; }
+
+/* ---------- 操作ボタンの、重要度 ---------- */
+.toolbar #run-button { padding: 0.7rem 1.6rem; font-size: 1rem; }
+.manual-toggle { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--ink-soft); background: transparent; border: 0; }
+
+/* ---------- 部品（ブロック）: 中は、白。種類は、線の色で、見分ける ---------- */
+.node, .node-channel, .node-encrypt, .node-decrypt, .node-key, .node-keypair, .node-pkenc, .node-pkdec,
+.node-hash, .node-hashcheck, .node-mac, .node-maccheck, .node-sign, .node-verify, .node-ca, .node-certcheck,
+.node-tls, .node-tlsopen, .node-vpn, .node-vpnopen, .node-handkey, .node-pubkey, .node-privkey, .node-seqstamp, .node-seqcheck {
+  background: var(--surface);
+  border-width: var(--bw);
+  border-radius: 4px;
+}
+.node-alice { border-color: var(--alice); min-width: 215px; }
+.node-bob { border-color: var(--bob); min-width: 215px; }
+.node-alice .node-title, .node-bob .node-title { font-size: 1.05rem; }
+.node-encrypt, .node-decrypt, .node-pkenc, .node-pkdec, .node-tls, .node-tlsopen, .node-vpn, .node-vpnopen { border-color: var(--alice); }
+.node-key, .node-keypair, .node-handkey, .node-pubkey, .node-privkey { border-color: var(--eve); }
+.node-hash, .node-hashcheck, .node-mac, .node-maccheck { border-color: var(--bob); }
+.node-sign, .node-verify, .node-ca, .node-certcheck, .node-seqstamp, .node-seqcheck { border-color: var(--gold); }
+.node.is-pair { border-color: var(--pair, var(--eve)); }
+/* 公開ゾーンに置かれた部品: 点線の枠で、「誰にでも、見える」ことを、示す */
+.node[data-zone="public"] { outline: 2px dashed var(--ink); outline-offset: 3px; }
+/* 状態: 影ではなく、枠線で見せる */
+.node.is-active { outline: 3px solid var(--sun); outline-offset: 2px; }
+.node.is-received { outline: 3px solid var(--ok); outline-offset: 2px; }
+.node.is-garbled, .node.is-blocked { outline: 3px solid var(--mallory); outline-offset: 2px; }
+.node.is-warn { outline: 3px dashed var(--mallory); outline-offset: 2px; }
+.port.is-target { outline: 3px solid var(--sun); outline-offset: 2px; }
+.tutorial-target { outline: 3px solid var(--sun); outline-offset: 3px; }
+
+.palette-item, .brief-toggle, .segmented, .palette-tab, .switch-btn {
+  border: var(--bw-s) solid var(--ink);
+  border-radius: 4px;
+}
+.palette-item { background: var(--surface); transition: background 0.08s; }
+.palette-item span { font-size: 0.82rem; color: var(--ink-soft); }
+.palette-item:hover { background: var(--sun); }
+.palette-tab { color: var(--ink); background: var(--surface); }
+.palette-tab.is-active, .switch-btn.is-active { color: var(--surface); background: var(--ink); }
+.brief-toggle { color: var(--ink); background: var(--surface); }
+.brief-toggle:hover { background: var(--sun); }
+.brief-toggle.brief-guide { color: var(--ink); background: var(--sun); }
+.brief-toggle.brief-guide:hover { color: var(--surface); background: var(--ink); }
+.brief-toggle.brief-glossary { color: var(--ink); background: var(--surface); }
+.port { border-width: 2px; }
+.term-chip:hover, .see-chip:hover { background: var(--sun); }
+.legend { font-size: 0.85rem; }
+
+/* 起きていること */
+.situation li { color: var(--ink); background: var(--surface); border: var(--bw-s) solid var(--ink); border-left: 6px solid var(--mallory); border-radius: 4px; font-weight: 700; }
+.situation li::before { display: none; }
+
+/* ---------- 吹き出し ---------- */
+.attacker-bubble, .node-bubble { border: var(--bw) solid var(--ink); border-radius: 4px; background: var(--surface); color: var(--ink); }
+.attacker-bubble.is-think, .node-bubble.tone-plain { background: var(--surface); border-style: dashed; color: var(--ink); }
+.attacker-bubble.tone-bad, .node-bubble.tone-bad { color: #fff; background: var(--mallory); border-color: var(--mallory); }
+.attacker-bubble.tone-good, .node-bubble.tone-good { color: #fff; background: var(--ok); border-color: var(--ok); }
+.attacker-bubble.tone-bad *, .node-bubble.tone-bad *, .attacker-bubble.tone-good *, .node-bubble.tone-good * { color: #fff; }
+.attacker-name { border: var(--bw-s) solid var(--ink); border-radius: 4px; font-weight: 800; font-family: var(--font-mono); }
+.attacker[data-who="eve"] .attacker-name { color: #fff; background: var(--eve); }
+.attacker[data-who="mallory"] .attacker-name { color: #fff; background: var(--mallory); }
+
+/* ---------- ラベル・小さな札 ---------- */
+.chip, .rule-chip, .palette-tag { border: var(--bw-s) solid var(--ink); border-radius: 4px; font-size: 0.8rem; }
+
+/* ---------- 事件の、結果 ---------- */
+.demo-verdict { border: var(--bw) solid var(--ink); border-radius: 4px; }
+.demo-verdict.is-bad { color: #fff; background: var(--mallory); border-color: var(--mallory); }
+.demo-verdict.is-safe { color: #fff; background: var(--ok); border-color: var(--ok); }
+.demo-dialog .guide-section.demo-bad h3 { color: var(--mallory); }
+.demo-dialog .guide-section.demo-safe h3 { color: var(--ok); }
+.epilogue-question { border: var(--bw) solid var(--ink); border-radius: 4px; background: var(--ink); color: var(--surface); }
+
+/* ---------- 用語集 ---------- */
+.glossary-nav, .glossary-detail, .detail-card {
+  background: var(--surface);
+  border: var(--bw) solid var(--ink);
+  border-radius: 4px;
+}
+.glossary-search { border: var(--bw) solid var(--ink); border-radius: 4px; background: #fff; }
+
+/* ---------- 画像のチェック・整形ツール ---------- */
+.chars-card, .chars-summary, .tool-settings { border: var(--bw) solid var(--ink); border-radius: 4px; background: var(--surface); }
+.chars-summary.is-ok { color: #fff; background: var(--ok); }
+.chars-summary.is-ng { color: #fff; background: var(--mallory); }
+.chars-advice { background: var(--surface); border: var(--bw) solid var(--ink); border-left: 8px solid var(--sun); border-radius: 4px; }
+.chars-main code { background: var(--surface); border: var(--bw-s) solid var(--ink); border-radius: 4px; }
+.chars-badges li { border: var(--bw-s) solid var(--ink); border-radius: 4px; }
+.chars-badges .ok { color: #fff; background: var(--ok); }
+.chars-badges .warn { color: var(--ink); background: var(--sun); }
+.chars-badges .ng { color: #fff; background: var(--mallory); }
+.tool-drop { border: var(--bw) dashed var(--ink); border-radius: 4px; background: var(--surface); }
+.tool-drop.is-over, .tool-drop:hover, .tool-drop:focus-visible { background: var(--sun); border-color: var(--ink); }
+.chars-thumb { border: var(--bw-s) solid var(--ink); }
+.tool-slot { border: var(--bw-s) solid var(--ink); border-radius: 4px; }
+.chars-zones .z-alice, .chars-zones .z-bob { background: var(--surface); }
+.chars-zones .z-public { background: repeating-linear-gradient(135deg, rgba(38, 54, 80, 0.07) 0 1px, transparent 1px 14px), var(--surface); }
+.chars-zones { border: var(--bw) solid var(--ink); }
+
+/* 「次へ」「エピローグを始める」ボタンは、ホバー・クリックしても、位置が、動かない */
+.next-step:hover, .next-step:active, .epilogue-start:hover, .epilogue-start:active { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .button, .stage-card, .palette-item { transition: none; }
+}
+
+/* クリア済みのカードも、ふつうの枠線（緑の色は、使わない） */
+.stage-card.is-cleared { border-color: var(--ink); background: var(--surface); }
+.stage-card.is-cleared:hover { background: var(--sun); }
+.how-to-note { color: var(--ink); font-weight: 700; }
+
+/* 条件パネル: ステージ名を、1行目に、広く。ボタンは、2行目に */
+.brief-bar { flex-wrap: wrap; row-gap: 0.4rem; }
+.brief-bar #stage-title { flex: 1 1 100%; font-size: 1.15rem; line-height: 1.4; }
+.brief-buttons { gap: 0.4rem; }
