@@ -1,0 +1,172 @@
+{
+  "id": "stage10",
+  "attacker": {
+    "type": "eve+mallory",
+    "capabilities": {
+      "compute": "supercomputer",
+      "looksFor": [
+        "messages",
+        "keys"
+      ],
+      "attacks": [
+        "tamper",
+        "forge",
+        "keyswap",
+        "replay"
+      ]
+    }
+  },
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "keypair",
+    "pkenc",
+    "pkdec",
+    "hash",
+    "hashcheck",
+    "mac",
+    "maccheck",
+    "sign",
+    "verify",
+    "ca",
+    "certcheck",
+    "seqstamp",
+    "seqcheck"
+  ],
+  "algorithms": [
+    "caesar",
+    "aes"
+  ],
+  "rules": {
+    "largeBody": true,
+    "message": "PHOTO.JPG",
+    "msgKind": "photo"
+  },
+  "carry": {
+    "from": "none"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality",
+        "integrity",
+        "authenticity",
+        "nonrepudiation",
+        "freshness"
+      ]
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "aes"
+          },
+          "alice"
+        ],
+        "pe": [
+          "pkenc",
+          {},
+          "alice"
+        ],
+        "kbpub": [
+          "pubkey",
+          {
+            "pair": "b"
+          },
+          "public"
+        ],
+        "kbpriv": [
+          "privkey",
+          {
+            "pair": "b"
+          },
+          "bob"
+        ],
+        "pd": [
+          "pkdec",
+          {},
+          "bob"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "aes"
+          },
+          "bob"
+        ],
+        "kapub": [
+          "pubkey",
+          {
+            "pair": "a"
+          },
+          "public"
+        ],
+        "kapriv": [
+          "privkey",
+          {
+            "pair": "a"
+          },
+          "alice"
+        ],
+        "sg": [
+          "sign",
+          {},
+          "alice"
+        ],
+        "v": [
+          "verify",
+          {},
+          "bob"
+        ],
+        "ca": [
+          "ca",
+          {},
+          "alice"
+        ],
+        "cc": [
+          "certcheck",
+          {},
+          "bob"
+        ],
+        "q": [
+          "seqstamp",
+          {},
+          "alice"
+        ],
+        "qc": [
+          "seqcheck",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "k.out>enc.key",
+        "k.out>pe.data",
+        "kbpub.out>pe.pub",
+        "enc.out>dec.data",
+        "pe.out>pd.data",
+        "kbpriv.out>pd.priv",
+        "pd.out>dec.key",
+        "alice.out>q.data",
+        "q.out>sg.data",
+        "sg.out>enc.data",
+        "dec.out>v.data",
+        "v.out>qc.data",
+        "qc.out>bob.in",
+        "kapriv.out>sg.priv",
+        "kapub.out>ca.pub",
+        "ca.out>cc.data",
+        "cc.pub>v.pub"
+      ]
+    }
+  }
+}
