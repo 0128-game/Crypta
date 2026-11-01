@@ -1,0 +1,35 @@
+/* 管理者センター（admin.html） */
+.ac-main { max-width: 980px; margin: 0 auto; padding: 1.2rem 1.2rem 5rem; }
+.ac-main h1 { margin: 0 0 0.3rem; font-size: 1.6rem; }
+.ac-lead { margin: 0 0 1.4rem; color: var(--ink-soft); }
+.ac-card { margin: 0 0 1.4rem; padding: 1.2rem 1.4rem 1.4rem; background: var(--surface); border-radius: 4px; }
+.ac-card > h2 { margin: 0 0 0.2rem; padding-bottom: 0.3rem; font-size: 1.15rem; border-bottom: 2px solid var(--ink); }
+.ac-card > .ac-note { margin: 0.5rem 0 0.9rem; font-size: 0.88rem; color: var(--ink-soft); }
+.ac-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.4rem 0; }
+.ac-row > .ac-sp { flex: 1; }
+.ac-btn { padding: 0.5rem 1.1rem; font: inherit; font-size: 0.92rem; font-weight: 800; color: var(--ink); background: var(--paper-deep); border: 0; border-radius: 4px; cursor: pointer; }
+.ac-btn:hover { color: var(--surface); background: var(--ink); }
+.ac-btn.is-main { background: var(--sun); }
+.ac-btn.is-main:hover { color: var(--surface); background: var(--ink); }
+.ac-btn[disabled] { opacity: 0.5; cursor: progress; }
+.ac-status { min-height: 1.4rem; margin: 0.5rem 0 0; font-size: 0.88rem; color: var(--ink-soft); }
+.ac-status.is-ok { color: var(--ok); font-weight: 700; }
+.ac-status.is-ng { color: var(--mallory); font-weight: 700; }
+.ac-list { margin: 0.4rem 0 0; padding: 0; list-style: none; font-size: 0.9rem; }
+.ac-list li { padding: 0.25rem 0; border-bottom: 1px solid var(--hair); }
+.ac-list li.is-ok::before { content: "✓ "; color: var(--ok); font-weight: 800; }
+.ac-list li.is-ng::before { content: "× "; color: var(--mallory); font-weight: 800; }
+.ac-list code { font-size: 0.82rem; color: var(--ink-soft); }
+.ac-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.ac-table th { padding: 0.4rem 0.5rem; text-align: left; color: var(--ink-soft); border-bottom: 2px solid var(--ink); }
+.ac-table td { padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--hair); }
+.ac-table select { padding: 0.2rem 0.4rem; font: inherit; }
+.ac-table a { font-weight: 700; }
+.ac-tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px; }
+.ac-logo-preview { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; margin: 0.6rem 0; }
+.ac-logo-box { display: grid; place-items: center; min-width: 200px; min-height: 76px; padding: 0.6rem 1rem; background: var(--bg); border-radius: 4px; }
+.ac-logo-box img { display: block; max-height: 64px; max-width: 280px; }
+.ac-logo-box small { display: block; margin-top: 0.3rem; font-size: 0.74rem; color: var(--ink-soft); }
+.ac-kv { display: grid; grid-template-columns: 11rem 1fr; gap: 0.2rem 1rem; margin: 0.4rem 0 0; font-size: 0.9rem; }
+.ac-kv dt { color: var(--ink-soft); }
+.ac-kv dd { margin: 0; font-weight: 700; }
