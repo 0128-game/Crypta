@@ -1,0 +1,72 @@
+{
+  "id": "stage02",
+  "attacker": {
+    "type": "eve",
+    "capabilities": {
+      "compute": "bruteforce",
+      "looksFor": [
+        "messages"
+      ]
+    }
+  },
+  "components": [
+    "handkey",
+    "encrypt",
+    "decrypt"
+  ],
+  "algorithms": [
+    "caesar",
+    "aes"
+  ],
+  "carry": {
+    "from": "previous"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality"
+      ]
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "ka": [
+          "handkey",
+          {
+            "pair": "k"
+          },
+          "alice"
+        ],
+        "kb": [
+          "handkey",
+          {
+            "pair": "k"
+          },
+          "bob"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "aes"
+          },
+          "alice"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "aes"
+          },
+          "bob"
+        ]
+      },
+      "edges": [
+        "alice.out>enc.data",
+        "enc.out>dec.data",
+        "dec.out>bob.in",
+        "ka.out>enc.key",
+        "kb.out>dec.key"
+      ]
+    }
+  }
+}
