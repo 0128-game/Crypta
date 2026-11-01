@@ -1,0 +1,156 @@
+{
+  "id": "stage08",
+  "attacker": {
+    "type": "eve+mallory",
+    "capabilities": {
+      "compute": "bruteforce",
+      "looksFor": [
+        "messages",
+        "keys"
+      ],
+      "attacks": [
+        "tamper",
+        "forge",
+        "keyswap"
+      ]
+    }
+  },
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "bobpair",
+    "alicepair",
+    "sign",
+    "verify",
+    "ca",
+    "certcheck"
+  ],
+  "algorithms": [
+    "caesar",
+    "aes",
+    "rsa"
+  ],
+  "rules": {
+    "largeBody": true,
+    "message": "PHOTO.JPG",
+    "msgKind": "photo"
+  },
+  "carry": {
+    "from": "previous"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality",
+        "integrity",
+        "authenticity",
+        "nonrepudiation"
+      ]
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "aes"
+          },
+          "alice"
+        ],
+        "pe": [
+          "encrypt",
+          {
+            "algorithm": "rsa"
+          },
+          "alice"
+        ],
+        "kbpub": [
+          "bobpub",
+          {
+            "pair": "b"
+          },
+          "public"
+        ],
+        "kbpriv": [
+          "bobpriv",
+          {
+            "pair": "b"
+          },
+          "bob"
+        ],
+        "pd": [
+          "decrypt",
+          {
+            "algorithm": "rsa"
+          },
+          "bob"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "aes"
+          },
+          "bob"
+        ],
+        "kapub": [
+          "alicepub",
+          {
+            "pair": "a"
+          },
+          "public"
+        ],
+        "kapriv": [
+          "alicepriv",
+          {
+            "pair": "a"
+          },
+          "alice"
+        ],
+        "sg": [
+          "sign",
+          {},
+          "alice"
+        ],
+        "v": [
+          "verify",
+          {},
+          "bob"
+        ],
+        "ca": [
+          "ca",
+          {},
+          "alice"
+        ],
+        "cc": [
+          "certcheck",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "k.out>enc.key",
+        "k.out>pe.data",
+        "kbpub.out>pe.key",
+        "enc.out>dec.data",
+        "pe.out>pd.data",
+        "kbpriv.out>pd.key",
+        "pd.out>dec.key",
+        "alice.out>sg.data",
+        "sg.out>enc.data",
+        "dec.out>v.data",
+        "v.out>bob.in",
+        "kapriv.out>sg.priv",
+        "kapub.out>ca.pub",
+        "ca.out>cc.data",
+        "cc.pub>v.pub"
+      ]
+    }
+  }
+}
