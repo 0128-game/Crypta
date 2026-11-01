@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRYPTA | キャラクター画像の自動整形</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/characters-check.css">
+  <link rel="stylesheet" href="css/characters-tool.css">
+  <link rel="stylesheet" href="css/theme.css">
+</head>
+<body class="page-chars">
+  <header class="site-header">
+    <a class="site-logo" href="index.html" aria-label="CRYPTA トップへ">CRYPTA</a>
+    <a class="header-link" href="characters-check.html">画像のチェック</a>
+  </header>
+
+  <main class="chars-main">
+    <h1>キャラクター画像の自動整形</h1>
+    <p class="chars-lead">
+      ChatGPT などで作った画像を、ゲームで使える形に、自動で整えます。絵を描く道具は、要りません。
+      画像は、ネットに送られません（このページの中だけで、処理されます）。
+    </p>
+    <ol class="tool-steps">
+      <li>画像を、下の枠に、ドラッグ＆ドロップ（または、クリックして選ぶ）。</li>
+      <li>1枚ずつ、<strong>どのキャラの画像か</strong>を、選ぶ（ファイル名から、自動で選ばれることもあります）。</li>
+      <li>設定を、確かめて、「整形する」を押す。</li>
+      <li>仕上がりを、見て、「すべてまとめて保存（zip）」を押す。</li>
+      <li>保存した zip を、展開して、中の画像を、<code>assets/characters/</code> に置く。</li>
+    </ol>
+
+    <label class="tool-drop" id="drop" tabindex="0">
+      <input type="file" id="file" accept="image/*" multiple hidden>
+      <strong>ここに、画像をドロップ</strong>
+      <span>（または、クリックして、選ぶ。複数、同時に選べます）</span>
+    </label>
+
+    <section class="tool-settings" aria-label="設定">
+      <label class="tool-check"><input type="checkbox" id="opt-bg" checked> 背景が、白（などの、べた塗り）のときは、透明にする</label>
+      <label class="tool-range">許容する色の差: <output id="out-tol">28</output>
+        <input type="range" id="opt-tol" min="4" max="80" value="28"></label>
+      <label class="tool-select">出力の大きさ:
+        <select id="opt-size"><option value="512">横 512px（軽い）</option><option value="640" selected>横 640px（おすすめ）</option><option value="768">横 768px</option></select></label>
+      <label class="tool-range">キャラの高さ: <output id="out-ratio">92</output>%
+        <input type="range" id="opt-ratio" min="70" max="100" value="92"></label>
+    </section>
+
+    <div class="tool-actions">
+      <button type="button" class="button button-primary" id="run" disabled>整形する</button>
+      <button type="button" class="button button-secondary" id="zip" disabled>すべてまとめて保存（zip）</button>
+      <button type="button" class="button button-secondary" id="clear" disabled>全部、消す</button>
+    </div>
+    <p class="chars-summary" id="msg" role="status" hidden></p>
+
+    <div class="chars-grid" id="list"></div>
+  </main>
+
+  <script type="module" src="js/characters-tool.js"></script>
+</body>
+</html>
