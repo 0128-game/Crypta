@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRYPTA CSS プレビュー</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { display: flex; flex-direction: column; font: 14px/1.5 "BIZ UDPGothic","Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",system-ui,sans-serif; color: #263650; background: #e9e5da; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 8px 14px; background: #263650; color: #fffcf5; }
+  .bar h1 { margin: 0; font-size: 15px; letter-spacing: .06em; }
+  .bar .grp { display: flex; gap: 4px; align-items: center; }
+  .bar button, .bar label.btn { padding: 4px 10px; font: 700 12px/1.4 inherit; color: #263650; background: #fffcf5; border: 2px solid #fffcf5; border-radius: 4px; cursor: pointer; }
+  .bar button.on { background: #f3c63f; border-color: #f3c63f; }
+  .bar button:hover, .bar label.btn:hover { background: #f3c63f; }
+  .bar .sp { flex: 1; }
+  #status { font-size: 12px; opacity: .85; }
+  .main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(300px, 36%) 1fr; }
+  .editor { display: flex; flex-direction: column; min-height: 0; border-right: 2px solid #263650; background: #fffcf5; }
+  .editor .hint { margin: 0; padding: 8px 12px; font-size: 12px; color: #657085; border-bottom: 1px solid #cfc9b8; }
+  #picked { padding: 6px 12px; font: 600 12px/1.5 ui-monospace, Consolas, monospace; background: #f3c63f; min-height: 30px; word-break: break-all; }
+  textarea { flex: 1; min-height: 0; width: 100%; padding: 12px; font: 12.5px/1.6 ui-monospace, "SF Mono", Consolas, "BIZ UDGothic", monospace; color: #263650; background: #fffcf5; border: 0; outline: 0; resize: none; tab-size: 2; white-space: pre; overflow: auto; }
+  .preview { min-height: 0; overflow: auto; padding: 14px; }
+  .pv { margin: 0 auto 22px; background: #fffcf5; border: 2px solid #263650; }
+  .pv > h2 { margin: 0; padding: 5px 12px; font-size: 13px; color: #fffcf5; background: #263650; }
+  .pv iframe { display: block; width: 100%; border: 0; background: #fff; }
+  @media (max-width: 900px) { .main { grid-template-columns: 1fr; grid-template-rows: 42% 1fr; } .editor { border-right: 0; border-bottom: 2px solid #263650; } }
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>CRYPTA CSS プレビュー</h1>
+  <div class="grp"><span>画面の幅:</span>
+    <button data-w="390">スマホ 390</button><button data-w="768">タブレット 768</button><button data-w="1280" class="on">PC 1280</button><button data-w="0">いっぱい</button></div>
+  <div class="grp"><button id="reset">元に戻す</button><button id="copy">コピー</button><button id="save">保存（theme.css）</button><label class="btn">CSS を読み込む<input type="file" id="load" accept=".css,text/css" hidden></label></div>
+  <div class="grp"><button id="trycss">ゲームで試す</button><button id="untrycss">試しを解除</button></div>
+  <span class="sp"></span><span id="status">左の CSS を書き換えると、右に、すぐ、反映されます。</span>
+</div>
+<div class="main">
+  <div class="editor">
+    <p class="hint">左は <b>css/theme.css</b> の内容です。書き換えると、右の部品に、すぐ、反映されます（ゲームの、ほかの CSS は、そのまま）。右の部品を、クリックすると、その部品の、クラス名が出て、CSS の、その場所が、選ばれます。気に入ったら、「保存」または「コピー」して、<b>css/theme.css</b> を、置き換えてください。</p>
+    <div id="picked">（右の部品を、クリックしてください）</div>
+    <textarea id="css" spellcheck="false">/*__THEME_CSS__*/</textarea>
+  </div>
+  <div class="preview" id="preview"></div>
+</div>
+
+<!--__DATA__-->
+
+<script>
+const PAGES = /*__PAGES__*/;
+const GALLERY_CSS = `/*__GALLERY_CSS__*/`;
+const $ = (s) => document.querySelector(s);
+const ta = $('#css');
+const initial = ta.value;
+const base = (id) => document.getElementById(id).textContent.replace(/<\\\/script/g, '</script');
+const frames = [];
+let width = 1280;
+
+function srcdoc(p, live) {
+  const css = p.css.map((n) => base('css-' + n)).join('\n');
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<style>' + css + '</style><style id="live">' + live + '</style><style id="gallery">' + GALLERY_CSS + '</style></head>'
+    + '<body class="' + p.body + '">' + base('page-' + p.id) + '</body></html>';
+}
+
+PAGES.forEach((p) => {
+  const box = document.createElement('div'); box.className = 'pv';
+  box.innerHTML = '<h2>' + p.title + '</h2>';
+  const f = document.createElement('iframe'); f.setAttribute('title', p.title); f.style.height = '400px';
+  box.append(f); $('#preview').append(box); frames.push({ f, p, box });
+  f.srcdoc = srcdoc(p, ta.value);
+  f.addEventListener('load', () => {
+    const d = f.contentDocument;
+    fit(f);
+    new ResizeObserver(() => fit(f)).observe(d.documentElement);
+    d.addEventListener('click', (e) => {
+      e.preventDefault();
+      let el = e.target; const path = [];
+      for (let i = 0; el && el.nodeType === 1 && el !== d.body && i < 4; i++, el = el.parentElement) {
+        const cls = [...el.classList].filter((c) => !/^is-/.test(c)).map((c) => '.' + c).join('');
+        path.push(el.tagName.toLowerCase() + cls);
+      }
+      $('#picked').textContent = path.join('  ←  ');
+      // CSS の中で、その部品のクラスが、最初に出てくる場所を、選ぶ
+      const first = [...e.target.classList].map((c) => '.' + c);
+      for (const sel of first.concat([...(e.target.parentElement?.classList ?? [])].map((c) => '.' + c))) {
+        const i = ta.value.indexOf(sel);
+        if (i >= 0) { ta.focus(); ta.setSelectionRange(i, i + sel.length); const line = ta.value.slice(0, i).split('\n').length; ta.scrollTop = Math.max(0, (line - 4) * 20); break; }
+      }
+    }, true);
+  });
+});
+
+function fit(f) { try { f.style.height = f.contentDocument.documentElement.scrollHeight + 'px'; } catch (e) {} }
+function setWidth(w) {
+  width = w;
+  document.querySelectorAll('.bar [data-w]').forEach((b) => b.classList.toggle('on', Number(b.dataset.w) === w));
+  frames.forEach(({ box }) => { box.style.width = w ? Math.min(w, 4000) + 'px' : 'auto'; box.style.maxWidth = '100%'; });
+  setTimeout(() => frames.forEach(({ f }) => fit(f)), 60);
+}
+let timer;
+function apply() {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    frames.forEach(({ f }) => { const s = f.contentDocument?.getElementById('live'); if (s) s.textContent = ta.value; fit(f); });
+    $('#status').textContent = '反映しました（' + new Date().toLocaleTimeString() + '）';
+  }, 120);
+}
+ta.addEventListener('input', apply);
+document.querySelectorAll('.bar [data-w]').forEach((b) => b.addEventListener('click', () => setWidth(Number(b.dataset.w))));
+$('#reset').addEventListener('click', () => { ta.value = initial; apply(); });
+$('#copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(ta.value); $('#status').textContent = 'コピーしました。css/theme.css に、貼り付けてください。'; } catch (e) { ta.select(); document.execCommand('copy'); } });
+$('#save').addEventListener('click', () => {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ta.value], { type: 'text/css' })); a.download = 'theme.css'; a.click();
+  $('#status').textContent = 'theme.css を保存しました。css/theme.css を、置き換えてください。';
+});
+$('#trycss').addEventListener('click', () => {
+  if (location.protocol === 'file:') { $('#status').textContent = 'このファイルを、直接、開いているので、ゲームには、反映できません。サイトの中の css-preview.html を、開いてください（管理者モードの画面から、開けます）。'; return; }
+  try { localStorage.setItem('crypta:override:theme', ta.value); $('#status').textContent = 'ゲーム用に、保存しました。管理者モードで、ゲームを開くと、この CSS が、重なって、使われます（管理者センターの「変更後」の zip にも、入ります）。'; }
+  catch (e) { $('#status').textContent = '保存できませんでした。'; }
+});
+$('#untrycss').addEventListener('click', () => { try { localStorage.removeItem('crypta:override:theme'); $('#status').textContent = '試し用の CSS を、解除しました。'; } catch (e) { /* 何もしない */ } });
+$('#load').addEventListener('change', async (e) => { const f = e.target.files[0]; if (f) { ta.value = await f.text(); apply(); } });
+setWidth(1280);
+</script>
+</body>
+</html>
