@@ -1,0 +1,205 @@
+/* ==========================================================
+   attacker.css  攻撃者の視点モード（attacker.html）と、
+   トップの「切り替え前の注意」ダイアログ・ヒーローの切り替え演出
+   ========================================================== */
+
+/* ---------- 切り替え前の注意（index.html） ---------- */
+.atk-modal-back {
+  position: fixed; inset: 0; z-index: 9800;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem; background: rgba(38, 54, 80, 0.62);
+}
+.atk-modal {
+  width: min(560px, 100%); max-height: 92vh; overflow: auto;
+  padding: 1.6rem 1.6rem 1.4rem; background: var(--surface); color: var(--ink);
+  border: 2px solid var(--ink); border-radius: 4px;
+}
+.atk-modal h2 { margin: 0 0 0.3rem; font-size: 1.3rem; }
+.atk-modal .atk-tag {
+  display: inline-block; margin-bottom: 0.7rem; padding: 0.1rem 0.55rem;
+  font: 800 0.78rem var(--font-mono); letter-spacing: 0.08em;
+  color: var(--surface); background: var(--mallory);
+}
+.atk-modal ul { margin: 0.8rem 0; padding-left: 1.2rem; line-height: 1.75; }
+.atk-modal li { margin-bottom: 0.35rem; }
+.atk-modal .atk-check { display: flex; gap: 0.5rem; align-items: flex-start; margin: 1rem 0; font-weight: 700; cursor: pointer; }
+.atk-modal .atk-check input { margin-top: 0.3rem; width: 1.1rem; height: 1.1rem; }
+.atk-modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; flex-wrap: wrap; }
+.atk-modal-actions .button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+/* ヒーロー: 解放後は、クリックできる */
+.hero-art.is-live { pointer-events: auto; cursor: pointer; }
+.hero-art.is-live:focus-visible { outline: 3px dashed var(--ink); outline-offset: 6px; }
+.hero-art .art-hint {
+  position: absolute; left: 50%; top: -14px; transform: translateX(-50%);
+  white-space: nowrap; padding: 0.25rem 0.7rem; font-size: 0.82rem; font-weight: 800;
+  color: var(--surface); background: var(--ink); animation: art-hint 1.8s ease-in-out infinite;
+}
+@keyframes art-hint { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -5px); } }
+.hero-art.is-live .art-eve, .hero-art.is-live .art-mallory { transition: transform 0.7s ease, bottom 0.7s ease, left 0.7s ease, right 0.7s ease; }
+.hero-art.is-live:hover .art-eve { transform: rotate(-12deg) scale(1.08); }
+.hero-art.is-live:hover .art-mallory { transform: rotate(12deg) scale(1.08); }
+.hero-art.is-swapping .art-alice, .hero-art.is-swapping .art-bob { opacity: 0; transform: scale(0.6); transition: opacity 0.6s, transform 0.6s; }
+.hero-art.is-swapping .art-line, .hero-art.is-swapping .art-packet, .hero-art.is-swapping .art-hint { opacity: 0; transition: opacity 0.4s; }
+.hero-art.is-swapping .art-eve { left: 14%; bottom: 20px; transform: rotate(0) scale(1.5); }
+.hero-art.is-swapping .art-mallory { right: 14%; bottom: 20px; transform: rotate(0) scale(1.5); }
+.hero-attacker-entry { margin-top: 1rem; }
+.hero-attacker-entry[hidden] { display: none; }
+
+/* ---------- attacker.html ---------- */
+body.page-attacker { background: var(--bg); }
+.sim-banner {
+  position: sticky; top: 0; z-index: 900; padding: 0.4rem 1rem; text-align: center;
+  font-size: 0.85rem; font-weight: 700; color: var(--surface); background: var(--mallory);
+}
+.sim-banner strong { margin-right: 0.6rem; font-family: var(--font-mono); letter-spacing: 0.1em; }
+.atk-main { max-width: 1080px; margin: 1.4rem auto 4rem; padding: 0 1rem; }
+.atk-loading, .atk-locked { padding: 3rem 0; text-align: center; font-weight: 700; }
+
+.atk-steps { display: flex; gap: 0.4rem; margin: 0 0 1.2rem; padding: 0; list-style: none; flex-wrap: wrap; }
+.atk-steps li {
+  flex: 1 1 140px; padding: 0.5rem 0.7rem; font-size: 0.88rem; font-weight: 800;
+  color: var(--ink-soft); background: var(--paper-deep);
+}
+.atk-steps li.is-now { color: var(--surface); background: var(--ink); }
+.atk-steps li.is-done { color: var(--ink); background: var(--sun); }
+.atk-steps li small { display: block; font-weight: 600; opacity: 0.85; }
+
+.atk-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1.2rem; align-items: start; }
+@media (max-width: 900px) { .atk-grid { grid-template-columns: 1fr; } }
+
+.atk-panel { padding: 1.2rem 1.3rem; background: var(--surface); }
+.atk-panel h2 { margin: 0 0 0.3rem; font-size: 1.35rem; }
+.atk-panel h3 { margin: 1.2rem 0 0.4rem; font-size: 1rem; }
+.atk-panel p { line-height: 1.8; }
+.atk-lead { color: var(--ink-soft); margin: 0.2rem 0 0.8rem; }
+
+/* ガイド（やること） */
+.atk-guide { position: sticky; top: 3rem; padding: 1rem; background: var(--sun); }
+.atk-guide-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.6rem; }
+.atk-guide-head .character { flex: none; }
+.atk-guide-title { margin: 0; font-weight: 800; font-size: 0.95rem; }
+.atk-tasks { margin: 0; padding: 0; list-style: none; }
+.atk-tasks li { display: flex; gap: 0.5rem; align-items: flex-start; padding: 0.45rem 0; border-top: 1.5px dashed rgba(38, 54, 80, 0.35); font-size: 0.92rem; font-weight: 700; line-height: 1.55; }
+.atk-tasks li::before { content: ""; flex: none; width: 1.05rem; height: 1.05rem; margin-top: 0.2rem; background: var(--surface); border: 2px solid var(--ink); }
+.atk-tasks li.is-done::before { content: "✓"; display: grid; place-items: center; font-size: 0.8rem; line-height: 1; color: var(--surface); background: var(--ok); border-color: var(--ok); }
+.atk-tasks li.is-done { opacity: 0.65; }
+.atk-guide-note { margin: 0.7rem 0 0; font-size: 0.82rem; line-height: 1.6; }
+
+/* 実験台 */
+.atk-stage { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 0.6rem; align-items: center; margin: 0.8rem 0; padding: 1rem; background: var(--paper-deep); }
+.atk-person { text-align: center; font-weight: 800; font-size: 0.9rem; }
+.atk-person .character { display: block; margin: 0 auto 0.2rem; }
+.atk-wire { min-width: 0; text-align: center; }
+.atk-wire-label { font-size: 0.78rem; font-weight: 800; color: var(--ink-soft); }
+.atk-wire-box {
+  margin: 0.3rem 0; padding: 0.6rem 0.7rem; min-height: 3.2rem; word-break: break-all;
+  font: 700 0.92rem/1.5 var(--font-mono); background: var(--surface); border: 2px dashed var(--ink);
+}
+.atk-wire-box.is-cipher { color: var(--eve); }
+.atk-wire-box.is-bad { color: var(--mallory); border-color: var(--mallory); }
+.atk-wire-box.is-empty { color: var(--ink-soft); border-style: dotted; font-weight: 600; }
+.atk-bubble { margin: 0.4rem 0 0; padding: 0.45rem 0.6rem; font-size: 0.86rem; font-weight: 700; line-height: 1.5; background: var(--surface); border: 1.5px solid var(--ink); text-align: left; }
+.atk-bubble.is-ok { border-color: var(--ok); }
+.atk-bubble.is-bad { border-color: var(--mallory); color: var(--mallory); }
+@media (max-width: 640px) { .atk-stage { grid-template-columns: 1fr; } }
+
+.atk-field { display: block; margin: 0.6rem 0; font-weight: 800; font-size: 0.9rem; }
+.atk-field input[type="text"], .atk-field textarea {
+  display: block; width: 100%; margin-top: 0.25rem; padding: 0.55rem 0.7rem; font: inherit; font-weight: 600;
+  color: var(--ink); background: var(--surface); border: 2px solid var(--ink); border-radius: 4px; box-sizing: border-box;
+}
+.atk-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.5rem; margin: 0.5rem 0; }
+.atk-mode { display: block; padding: 0.6rem 0.7rem; text-align: left; font: inherit; font-size: 0.88rem; font-weight: 700; line-height: 1.5; color: var(--ink); background: var(--surface); border: 2px solid var(--ink); border-radius: 4px; cursor: pointer; }
+.atk-mode b { display: block; font-size: 0.95rem; }
+.atk-mode.is-on { color: var(--surface); background: var(--ink); }
+.atk-mode[disabled] { opacity: 0.4; cursor: not-allowed; }
+.atk-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.8rem 0; }
+.atk-actions .button.is-next { animation: atk-pulse 1.4s ease-in-out infinite; }
+@keyframes atk-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(243, 198, 63, 0.9); } 50% { box-shadow: 0 0 0 7px rgba(243, 198, 63, 0); } }
+.btn-eve { color: var(--surface) !important; background: var(--eve) !important; }
+.btn-mal { color: var(--surface) !important; background: var(--mallory) !important; }
+
+.atk-brute { margin: 0.5rem 0; padding: 0; list-style: none; font: 600 0.86rem/1.4 var(--font-mono); max-height: 17rem; overflow: auto; border: 1.5px solid var(--hair); background: var(--surface); }
+.atk-brute li { display: flex; gap: 0.6rem; padding: 0.25rem 0.6rem; cursor: pointer; border-bottom: 1px solid var(--hair); }
+.atk-brute li:hover { background: var(--sun); }
+.atk-brute li.is-hit { background: var(--ok); color: var(--surface); }
+.atk-brute li.is-miss { opacity: 0.45; text-decoration: line-through; }
+.atk-brute .k { flex: none; width: 3.4rem; color: var(--ink-soft); }
+.atk-brute li.is-hit .k { color: var(--surface); }
+.atk-meter { margin: 0.5rem 0; padding: 0.6rem 0.8rem; font: 700 0.9rem/1.6 var(--font-mono); background: var(--surface); border: 1.5px solid var(--hair); }
+
+.atk-verdict { margin: 0.8rem 0; padding: 0.8rem 1rem; font-weight: 800; line-height: 1.7; border: 2px solid var(--ink); background: var(--surface); }
+.atk-verdict.is-ok { border-color: var(--ok); }
+.atk-verdict.is-bad { border-color: var(--mallory); }
+
+.atk-nav { display: flex; justify-content: space-between; gap: 0.6rem; margin-top: 1.2rem; flex-wrap: wrap; }
+.atk-nav .button[disabled] { opacity: 0.35; cursor: not-allowed; animation: none; }
+
+/* 本物の攻撃者（4幕） */
+.atk-targets { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.7rem; margin: 0.8rem 0; }
+.atk-target { padding: 0.9rem; text-align: left; font: inherit; line-height: 1.6; color: var(--ink); background: var(--surface); border: 2px solid var(--ink); border-radius: 4px; cursor: pointer; }
+.atk-target b { display: block; font-size: 1.05rem; margin-bottom: 0.2rem; }
+.atk-target small { color: var(--ink-soft); font-weight: 600; }
+.atk-target.is-on { background: var(--sun); }
+.atk-target.is-done { border-color: var(--ok); }
+.atk-target.is-done b::after { content: "  ✓"; color: var(--ok); }
+.atk-sub { margin-top: 1rem; padding: 1rem; background: var(--paper-deep); }
+.atk-checks label { display: flex; gap: 0.5rem; align-items: flex-start; margin: 0.4rem 0; font-weight: 700; line-height: 1.55; cursor: pointer; }
+.atk-checks input { margin-top: 0.3rem; width: 1.05rem; height: 1.05rem; }
+.atk-bar { height: 1.1rem; margin: 0.4rem 0; background: var(--surface); border: 2px solid var(--ink); }
+.atk-bar > i { display: block; height: 100%; background: var(--mallory); transition: width 0.4s; }
+.atk-final { margin-top: 1.2rem; padding: 1.4rem; color: var(--surface); background: var(--ink); }
+.atk-final h2 { color: var(--sun); }
+.atk-final ul { padding-left: 1.2rem; line-height: 1.9; }
+.atk-final .button-secondary { color: var(--ink); }
+.atk-final .atk-big { margin: 1rem 0 0; font: 800 1.35rem/1.5 var(--font-mono); color: var(--sun); }
+
+/* ---------- 攻撃者ステージの遊ぶ画面（atk-play.js） ---------- */
+.atk-target.is-locked { opacity: 0.5; cursor: not-allowed; background: var(--paper-deep); }
+.atk-play-head { margin-top: 0.4rem; }
+.atk-tag2 { display: inline-block; margin: 0 0 0.2rem; padding: 0.1rem 0.55rem; font: 800 0.78rem var(--font-mono); color: var(--surface); background: var(--mallory); }
+.atk-play-head h2 { margin: 0.2rem 0; font-size: 1.5rem; }
+.atk-questions { margin: 0.6rem 0; padding: 0.6rem 0.9rem; font-weight: 700; line-height: 1.7; background: var(--sun); }
+.atk-play { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1.2rem; align-items: start; }
+@media (max-width: 900px) { .atk-play { grid-template-columns: 1fr; } }
+.atk-scene { display: grid; grid-template-columns: 0.7fr 2.2fr 0.7fr; gap: 0.5rem; margin: 0.6rem 0; }
+@media (max-width: 760px) { .atk-scene { grid-template-columns: 1fr; } }
+.atk-zone { min-height: 14rem; padding: 0.6rem; background: var(--surface); text-align: center; }
+.atk-zone-t { margin-bottom: 0.4rem; font-size: 0.78rem; font-weight: 800; color: var(--ink-soft); }
+.atk-zone.is-fog { background: repeating-linear-gradient(135deg, var(--paper-deep), var(--paper-deep) 8px, #ddd6c4 8px, #ddd6c4 16px); }
+.atk-zone.is-public { text-align: left; border: 2px dashed var(--ink); }
+.atk-wireline { display: flex; flex-direction: column; gap: 0.4rem; }
+.atk-lying { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.atk-card {
+  display: block; width: 100%; padding: 0.5rem 0.65rem; text-align: left; font: inherit; line-height: 1.45;
+  color: var(--ink); background: var(--bg); border: 2px solid var(--ink); border-radius: 4px; cursor: pointer;
+}
+.atk-card:hover { background: var(--sun); }
+.atk-card b { display: block; font-size: 0.9rem; }
+.atk-card-body { display: block; font: 600 0.88rem/1.5 var(--font-mono); word-break: break-all; }
+.atk-chips { display: block; margin-top: 0.15rem; font-size: 0.75rem; font-weight: 800; color: var(--eve); }
+.atk-card small { display: block; color: var(--ink-soft); font-weight: 700; }
+.atk-slot.is-done { opacity: 0.45; }
+.atk-slot.is-grabbed { opacity: 0.45; text-decoration: line-through; }
+.atk-lyingitem { border-style: dotted; }
+.atk-log { margin: 0.6rem 0; padding: 0.6rem 0.8rem; background: var(--paper-deep); }
+.atk-logline { margin: 0.25rem 0; font-size: 0.9rem; font-weight: 700; }
+.atk-logline.is-in { color: var(--mallory); }
+.atk-logline.is-out { color: var(--ok); }
+.atk-hotbar { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: stretch; margin: 0.6rem 0 0.2rem; }
+.atk-tool { padding: 0.5rem 0.8rem; font: inherit; font-weight: 800; color: var(--ink); background: var(--surface); border: 2px solid var(--ink); border-radius: 4px; cursor: pointer; }
+.atk-tool.is-on { color: var(--surface); background: var(--ink); }
+.atk-advance { margin-left: auto; }
+.atk-hint { margin: 0.2rem 0 0.6rem; font-size: 0.85rem; color: var(--ink-soft); font-weight: 700; }
+.atk-inv { padding: 0.6rem 0.8rem; background: var(--paper-deep); }
+.atk-inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.4rem; margin-top: 0.4rem; }
+.atk-inv-item.is-sel { outline: 3px solid var(--mallory); background: var(--sun); }
+.atk-msgs { margin-top: 0.6rem; }
+.atk-msg { margin: 0.3rem 0; padding: 0.35rem 0.5rem; font-size: 0.85rem; font-weight: 700; line-height: 1.5; background: var(--surface); border-left: 4px solid var(--ink); }
+.atk-msg.ok { border-left-color: var(--ok); }
+.atk-msg.bad { border-left-color: var(--mallory); }
+.atk-inspect { margin-top: 0.6rem; padding: 0.6rem; background: var(--surface); font-size: 0.85rem; line-height: 1.6; }
+.atk-inspect p { margin: 0.2rem 0; }
+.atk-clear { margin-top: 1rem; }
+.atk-principle { font-size: 1.1rem; font-weight: 800; }
