@@ -1,0 +1,58 @@
+/* キャラクター画像のチェック（characters-check.html） */
+.chars-main { max-width: 1040px; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+.chars-main h1 { margin: 0 0 0.5rem; font-size: 1.6rem; }
+.chars-main h2 { margin: 2.2rem 0 0.6rem; font-size: 1.2rem; }
+.chars-main code { padding: 0.05rem 0.4rem; font-size: 0.9em; background: #eef1ff; border-radius: 6px; }
+.chars-lead { margin: 0 0 0.8rem; line-height: 1.8; color: var(--ink-soft); }
+.chars-summary { margin: 1rem 0; padding: 0.8rem 1.1rem; font-weight: 800; background: #fff; border-radius: 14px; box-shadow: var(--shadow-soft); }
+.chars-summary.is-ok { color: #1c8656; background: #effcf6; }
+.chars-summary.is-ng { color: #b3263f; background: #fff0f3; }
+.chars-advice { margin: 0 0 1rem; padding: 0.9rem 1.1rem; line-height: 1.8; background: #fff8e1; border-radius: 14px; }
+.chars-advice[hidden] { display: none; }
+.chars-advice ul { margin: 0.3rem 0 0; padding-left: 1.3rem; }
+
+.chars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; }
+.chars-card { padding: 0.8rem; background: #fff; border-radius: 16px; box-shadow: var(--shadow-soft); }
+.chars-card h3 { margin: 0 0 0.1rem; font-size: 0.98rem; }
+.chars-card .file { margin: 0 0 0.5rem; font-size: 0.78rem; color: var(--ink-soft); word-break: break-all; }
+.chars-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 190px;
+  margin-bottom: 0.6rem;
+  overflow: hidden;
+  border-radius: 12px;
+  /* 市松模様: 透明な部分が、見えるように */
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #dfe3f3 25%, transparent 25%, transparent 75%, #dfe3f3 75%),
+    linear-gradient(45deg, #dfe3f3 25%, transparent 25%, transparent 75%, #dfe3f3 75%);
+  background-position: 0 0, 10px 10px;
+  background-size: 20px 20px;
+}
+.chars-thumb img { width: auto; height: auto; max-width: 100%; max-height: 190px; object-fit: contain; }
+.chars-thumb .none { padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: #b3263f; background: rgba(255, 255, 255, 0.9); border-radius: 8px; }
+.chars-badges { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0; padding: 0; list-style: none; }
+.chars-badges li { padding: 0.12rem 0.6rem; font-size: 0.74rem; font-weight: 800; border-radius: 999px; }
+.chars-badges .ok { color: #1c8656; background: #effcf6; }
+.chars-badges .warn { color: #8a6200; background: #fff3cd; }
+.chars-badges .ng { color: #b3263f; background: #fff0f3; }
+
+.chars-ingame { display: grid; gap: 0.8rem; }
+.chars-row { display: grid; grid-template-columns: 7rem 1fr; gap: 0.8rem; align-items: center; }
+.chars-row > strong { font-size: 0.9rem; }
+.chars-zones { display: grid; grid-template-columns: repeat(3, 1fr); border-radius: 14px; overflow: hidden; }
+.chars-zones > div { display: flex; align-items: flex-end; justify-content: center; gap: 0.6rem; min-height: 170px; padding: 1rem 0.4rem 1.2rem; }
+.chars-zones .character { flex: none; }
+.chars-zones .z-alice { background: #eef0ff; }
+.chars-zones .z-public { background: #fdeee4; }
+.chars-zones .z-bob { background: #e8f6ef; }
+.chars-zones .tag { font-size: 0.72rem; color: var(--ink-soft); }
+@media (max-width: 640px) { .chars-row { grid-template-columns: 1fr; } }
+
+/* ゲームの中と、同じ見え方にするための、キャラクターの最小限の設定 */
+.character { display: block; overflow: visible; }
+.character .face-bad { display: none; }
+.character-img { position: relative; line-height: 0; }
+.character-img img { display: block; width: 100%; height: 100%; max-width: none; object-fit: contain; pointer-events: none; }
