@@ -1,0 +1,57 @@
+{
+  "_使い方": [
+    "キャラクターの画像の設定です。書き換えて保存し、ブラウザを再読み込み（Ctrl+Shift+R）すると、反映されます。",
+    "useImages = true にすると、assets/characters/ に置いた画像を使います。false にすると、画像は使わず、ゲームに入っている絵（SVG）を使います。",
+    "basePath = 画像を置いたフォルダ。blend = 背景が透明でない画像のとき、\"multiply\" にすると、白い背景が、なじみます（くわしくは、docs の②）。",
+    "characters の中: normal = ふつうの顔の画像、worried = あわてた顔の画像（なければ、\"\" にすると、ふつうの顔を使います）。scale = 大きさの倍率、offsetY = 上下の位置の調整（%。マイナスで、上へ）。",
+    "画像のファイルが、見つからないキャラは、ゲームに入っている絵（SVG）で、表示されます。置き換えの確認は、characters-check.html を開いてください。",
+    "名前が _ で始まる項目は、メモです。書き方（カンマ・引用符）をまちがえると、読み込めません。"
+  ],
+  "useImages": true,
+  "basePath": "assets/characters/",
+  "blend": "normal",
+  "characters": {
+    "alice": {
+      "name": "Alice",
+      "normal": "alice.png",
+      "worried": "alice_worried.png",
+      "scale": 1,
+      "offsetY": 0
+    },
+    "bob": {
+      "name": "Bob",
+      "normal": "bob.png",
+      "worried": "bob_worried.png",
+      "scale": 1,
+      "offsetY": 0
+    },
+    "eve": {
+      "name": "Eve",
+      "normal": "eve.png",
+      "worried": "eve_worried.png",
+      "scale": 1,
+      "offsetY": 0
+    },
+    "mallory": {
+      "name": "Mallory",
+      "normal": "mallory.png",
+      "worried": "mallory_worried.png",
+      "scale": 1,
+      "offsetY": 0
+    },
+    "ai": {
+      "name": "正体不明の攻撃者（???）",
+      "normal": "ai.png",
+      "worried": "",
+      "scale": 1,
+      "offsetY": 0
+    },
+    "robot": {
+      "name": "正体（AI）",
+      "normal": "robot.png",
+      "worried": "",
+      "scale": 1,
+      "offsetY": 0
+    }
+  }
+}

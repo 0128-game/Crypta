@@ -1,0 +1,125 @@
+{
+  "id": "stage05",
+  "attacker": {
+    "type": "mallory",
+    "capabilities": {
+      "compute": "bruteforce",
+      "looksFor": [
+        "messages",
+        "keys"
+      ],
+      "attacks": [
+        "tamper"
+      ]
+    },
+    "newAttacks": [
+      "tamper"
+    ]
+  },
+  "components": [
+    "key",
+    "encrypt",
+    "decrypt",
+    "alicepair",
+    "bobpair",
+    "hash",
+    "hashcheck"
+  ],
+  "algorithms": [
+    "caesar",
+    "aes",
+    "rsa"
+  ],
+  "rules": {
+    "largeBody": true,
+    "message": "PHOTO.JPG",
+    "msgKind": "photo"
+  },
+  "carry": {
+    "from": "previous"
+  },
+  "objectives": {
+    "A": {
+      "require": [
+        "confidentiality",
+        "integrity"
+      ]
+    }
+  },
+  "solutions": {
+    "A": {
+      "nodes": {
+        "k": [
+          "key",
+          {},
+          "alice"
+        ],
+        "enc": [
+          "encrypt",
+          {
+            "algorithm": "aes"
+          },
+          "alice"
+        ],
+        "pe": [
+          "encrypt",
+          {
+            "algorithm": "rsa"
+          },
+          "alice"
+        ],
+        "kbpub": [
+          "bobpub",
+          {
+            "pair": "b"
+          },
+          "public"
+        ],
+        "kbpriv": [
+          "bobpriv",
+          {
+            "pair": "b"
+          },
+          "bob"
+        ],
+        "pd": [
+          "decrypt",
+          {
+            "algorithm": "rsa"
+          },
+          "bob"
+        ],
+        "dec": [
+          "decrypt",
+          {
+            "algorithm": "aes"
+          },
+          "bob"
+        ],
+        "h": [
+          "hash",
+          {},
+          "alice"
+        ],
+        "hc": [
+          "hashcheck",
+          {},
+          "bob"
+        ]
+      },
+      "edges": [
+        "k.out>enc.key",
+        "k.out>pe.data",
+        "kbpub.out>pe.key",
+        "enc.out>dec.data",
+        "pe.out>pd.data",
+        "kbpriv.out>pd.key",
+        "pd.out>dec.key",
+        "alice.out>h.data",
+        "h.out>enc.data",
+        "dec.out>hc.data",
+        "hc.out>bob.in"
+      ]
+    }
+  }
+}
