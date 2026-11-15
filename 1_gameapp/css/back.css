@@ -1,0 +1,194 @@
+/* ==========================================================
+   back.css  裏面（Eve・Mallory）の色と、ステージ画面（表面と同じ構成・別の色）
+   ========================================================== */
+body.side-back {
+  --bg: #E6E6EF;
+  --surface: #FAF9FD;
+  --paper-deep: #D6D6E5;
+  --ink: #232842;
+  --ink-soft: #5E6482;
+  --sun: #CFCBE8;           /* 強調（表面の黄色の代わり） */
+  --band: #3B3F66;          /* ヒーローの帯 */
+  background: var(--bg);
+}
+.side-back .hero::before { background-color: var(--band); background-image: radial-gradient(rgba(255, 255, 255, 0.10) 1.3px, transparent 1.7px); background-size: 15px 15px; background-repeat: repeat; background-position: 0 0; }
+.side-back .hero::after { display: none; }
+.side-back .hero h1, .side-back .hero-lead { color: #fff; }
+.side-back .hero .button-primary { color: var(--ink); background: #fff; }
+.side-back .hero .button-primary:hover { color: #fff; background: var(--mallory); }
+.side-back .art-line { border-top-color: #fff; }
+.side-back .art-packet { background: #fff; }
+.side-back .site-logo:not(.has-image) { background: var(--band); color: #fff; border-color: var(--ink); }
+.side-chip { padding: 0.15rem 0.6rem; font: 800 0.85rem var(--font-mono); letter-spacing: 0.1em; color: #fff; background: var(--mallory); }
+.side-back .stage-card.is-continue { background: var(--paper-deep); }
+.side-back .stage-card.is-continue:hover, .side-back .stage-card:hover { background: var(--sun); }
+.side-back .stage-card.is-continue .stage-now { color: #fff; background: var(--band); }
+
+/* ---------- ステージ画面：表面と同じ構造（simulator.css を共用）。色だけ、裏面 ---------- */
+body.side-back { --primary: #3B3F66; --primary-deep: #232842; --primary-soft: #D6D6E5; --line: #C9C9DC; --wire: #5E6482; }
+.side-back .board { background-color: #F3F2F9; }
+.side-back .zone-alice { background: rgba(94, 100, 130, 0.22); }
+.side-back .zone-public { background: rgba(207, 203, 232, 0.35); }
+.side-back .zone-bob { background: rgba(94, 100, 130, 0.22); }
+.side-back .zone-tag-alice, .side-back .zone-tag-bob { color: var(--ink-soft); }
+.side-back .zone-tag-public { color: var(--band); }
+.side-back .edge.is-public .edge-line { stroke: #8A8FAE; }
+.side-back .edge:hover .edge-line { stroke: var(--band); }
+.side-back .edge.is-sel .edge-line { stroke-width: 11; filter: drop-shadow(0 0 6px rgba(59, 63, 102, 0.55)); }
+.side-back .edge.is-done .edge-line { opacity: 0.4; }
+.side-back .edge.is-grabbed .edge-line { opacity: 0.4; stroke-dasharray: 10 8; }
+.atk-wire-no { position: absolute; font-size: 1.1rem; font-weight: 800; color: var(--ink-soft); pointer-events: none; }
+.atk-wire-text { position: absolute; transform: translateX(-50%); max-width: 900px; padding: 0.3rem 1.2rem; font: 800 1.6rem var(--font-mono); color: #fff; background: var(--c); border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; transition: background-color 0.4s ease; }
+.atk-wire-hint { position: absolute; left: 280px; right: 280px; height: 56px; border-radius: 12px; pointer-events: none; }
+.atk-empty { position: absolute; transform: translateX(-50%); margin: 0; font-size: 1.4rem; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
+.node-lying { cursor: pointer; min-width: 190px; }
+.node-lying.is-sel { outline: 4px solid var(--band); outline-offset: 2px; }
+.atk-role { margin: 0; padding: 0.3rem 0.6rem; font-weight: 800; font-size: 0.85rem; color: #fff; background: var(--band); }
+.atk-result { padding: 0.8rem 1rem; background: rgba(255, 255, 255, 0.96); border-radius: var(--r-lg); box-shadow: var(--shadow-lift); overflow: auto; max-height: 55vh; }
+.atk-advance { margin-left: 0; }
+.objective.is-done .objective-mark { color: #fff; background: #347C79; }
+.objective.is-done .objective-title { color: var(--ink-soft); text-decoration: line-through; }
+
+/* メッセージボックス（ブロック置き場だった所） */
+.atk-mb-col { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; max-height: 11.5rem; overflow-y: auto; padding: 0.4rem 0.6rem; background: var(--surface); border: 2px solid var(--paper-deep); }
+.atk-mb-t { font-size: 0.8rem; color: var(--ink-soft); }
+.atk-cmd { display: block; width: 100%; padding: 0.4rem 0.7rem; font: inherit; font-weight: 800; text-align: left; color: var(--ink); background: var(--paper-deep); border: 2px solid var(--ink); border-radius: 3px; cursor: pointer; }
+.atk-cmd:hover { background: var(--sun); }
+.atk-cmd.is-quiet { font-weight: 600; background: transparent; border-style: dashed; }
+.atk-mb-out .atk-msg { margin: 0.2rem 0; font-size: 0.9rem; }
+.atk-mb-out .atk-msg.ok { color: #1f6b4a; font-weight: 700; }
+.atk-mb-out .atk-msg.bad { color: var(--mallory); font-weight: 700; }
+.atk-inspect { padding: 0.4rem 0.6rem; background: var(--sun); }
+.atk-inspect p { margin: 0.15rem 0; font-size: 0.85rem; }
+.atk-inv-grid { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.atk-inv-item { text-align: left; }
+.atk-inv-item.is-sel { outline: 3px solid var(--band); }
+.atk-clear-back .atk-clear { max-width: 40rem; }
+.atk-debrief { margin: 0.6rem 0; padding: 0.6rem 0.8rem; background: var(--surface); border-left: 4px solid var(--mallory); }
+.atk-debrief p { margin: 0.25rem 0; font-size: 0.9rem; }
+
+/* ---------- 裏面ヒーロー：表面と同じ動き。前後だけ入れ替える（Eve・Mallory が手前、Alice・Bob は奥） ---------- */
+.hero-art.is-back:not(.is-swapping) .art-alice, .hero-art.is-back:not(.is-swapping) .art-bob { z-index: 2; }
+.hero-art.is-back:not(.is-swapping) .art-eve { left: 6%; bottom: 128px; transform: rotate(-6deg); z-index: 1; }
+.hero-art.is-back:not(.is-swapping) .art-mallory { right: 6%; bottom: 134px; transform: rotate(7deg); z-index: 1; }
+.hero-art.is-back .art-line { left: calc(6% + 90px); right: calc(6% + 94px); bottom: 178px; }
+.hero-art.is-back .art-packet { bottom: 172px; animation-name: art-send-back; }
+@keyframes art-send-back { 0% { left: calc(6% + 90px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: calc(94% - 110px); opacity: 0; } }
+.hero-art.is-back.is-live:hover:not(.is-swapping) .art-alice { transform: scale(1.06); }
+.hero-art.is-back.is-live:hover:not(.is-swapping) .art-bob { transform: scale(1.06); }
+.hero-art.is-back.is-swapping .art-eve { left: 14%; bottom: 20px; transform: rotate(0) scale(1.5); }
+.hero-art.is-back.is-swapping .art-mallory { right: 14%; bottom: 20px; transform: rotate(0) scale(1.5); }
+.hero-art .art-char { transition: left 0.7s ease, right 0.7s ease, bottom 0.7s ease, transform 0.7s ease, opacity 0.6s ease; }
+.side-back .zone-tags .zone-tag { background: rgba(255, 255, 255, 0.94); }
+.side-back .zone-tags .zone-tag-alice, .side-back .zone-tags .zone-tag-bob { color: var(--ink-soft); }
+.atk-pool { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.6rem 0; }
+.atk-part { padding: 0.5rem 0.8rem; font: inherit; font-weight: 700; color: var(--ink); background: var(--paper-deep); border: 2px solid var(--ink); border-radius: 4px; cursor: pointer; }
+.atk-part:disabled { opacity: 0.3; cursor: default; }
+.atk-chain { margin: 0.4rem 0; padding-left: 1.4rem; font-weight: 700; color: var(--band); }
+.atk-moves { padding: 0.3rem 0.8rem; font-weight: 800; color: var(--ink); background: rgba(255, 255, 255, 0.94); border-radius: 999px; box-shadow: var(--shadow-soft); }
+.atk-circuit, .atk-stopbar { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.8rem 0; }
+.atk-part-box { padding: 0.5rem 0.8rem; font-weight: 800; background: var(--paper-deep); border: 2px solid var(--ink); border-radius: 6px; }
+.atk-part-box.is-public { background: var(--sun); border-style: dashed; }
+.atk-part-box.is-guard { background: #fff3d6; }
+.atk-arrow { font-weight: 800; color: var(--ink-soft); }
+.atk-stopdot { position: absolute; left: 0; top: -0.6rem; width: 14px; height: 14px; background: var(--mallory); border-radius: 50%; opacity: 0; }
+.atk-stopbar.is-play .atk-stopdot { opacity: 1; animation: atk-stopmove 2.2s ease-in forwards; }
+.atk-stopbar.is-blocked .atk-part-box.is-guard { background: #d6f0e4; border-color: #347C79; transition: background-color 0.4s; }
+@keyframes atk-stopmove { 0% { left: 0; } 100% { left: 46%; } }
+.atk-stoplog { margin: 0.5rem 0; padding-left: 1.2rem; font-weight: 700; line-height: 1.8; }
+.atk-stoplog .is-end { color: #1f6b4a; font-weight: 800; list-style: "✓ "; }
+.atk-defense { margin: 0.6rem 0; padding: 0.6rem 0.8rem; background: var(--surface); border-left: 4px solid #347C79; }
+.atk-defense p { margin: 0.3rem 0; font-size: 0.9rem; }
+.atk-rate { display: flex; align-items: center; gap: 0.4rem; font-weight: 800; }
+.atk-closing { margin: 0.4rem 0; font-weight: 800; }
+.atk-slide-k { margin: 0.6rem 0 0; font-weight: 800; }
+.atk-slider { width: 100%; }
+.atk-slide-out { margin: 0.4rem 0; padding: 0.5rem 0.8rem; font: 700 1.05rem var(--font-mono); background: var(--sun); word-break: break-all; }
+
+/* ---------- 2026-11 改修：上が回路、下が作業スペース（仕切りで大きさを変えられる） ---------- */
+.atk-editor { --mb-h: 220px; }
+.atk-editor .board { bottom: var(--mb-h); }
+.atk-editor.has-result .board { bottom: 0; }
+.atk-editor .side-stack { max-height: calc(100% - var(--mb-h) - 1.5rem); }
+.atk-editor.has-result .side-stack { max-height: calc(100% - 1.5rem); }
+.atk-msgbox { position: absolute; left: 0; right: 0; bottom: 0; top: auto; z-index: 22; display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(0, 2fr); gap: 0.6rem; width: auto; max-width: none; height: var(--mb-h); min-height: 0; max-height: none; padding: 0.9rem 0.75rem 0.6rem; transform: none; border-radius: 0; border-top: 2px solid var(--line); box-shadow: 0 -4px 14px rgba(35, 40, 66, 0.08); }
+.atk-mb-col { max-height: none; height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 760px) { .atk-msgbox { grid-template-columns: 1fr; overflow-y: auto; } .atk-mb-col { height: auto; } }
+.editor.has-result .atk-msgbox, .editor.has-result .atk-legend { display: none; }
+.atk-splitter { position: absolute; left: 0; right: 0; top: -7px; height: 14px; z-index: 3; display: grid; place-items: center; cursor: row-resize; touch-action: none; }
+.atk-splitter-grip { width: 64px; height: 6px; background: var(--ink-soft); border-radius: 3px; opacity: 0.55; transition: opacity 0.2s; }
+.atk-splitter:hover .atk-splitter-grip { opacity: 1; }
+
+/* 短い通知：表面と同じ .toast。回路の下のほう（作業スペースのすぐ上）に出す */
+.atk-toast { position: fixed; top: auto; bottom: calc(var(--atk-mb-h, 220px) + 0.9rem); transform: translateX(-50%); max-width: min(38rem, calc(100% - 2rem)); }
+.atk-toast[data-tone="bad"] { border-left: 5px solid var(--mallory); }
+/* 調べた「落ちている物」の下に、何なのかを書く */
+.atk-obj-cap { max-width: 330px; margin-top: 0.4rem; padding: 0.4rem 0.7rem; font-size: 1.05rem; font-weight: 700; line-height: 1.5; color: var(--ink); background: var(--sun); border-radius: 6px; white-space: normal; }
+.atk-obj-cap p { margin: 0.1rem 0; }
+/* チュートリアル：作業スペースのすぐ上、右に出す */
+.side-back .atk-coach { top: auto; left: auto; right: 0.75rem; bottom: calc(var(--mb-h) + 0.75rem); width: min(360px, 34vw); transform: none; }
+@media (max-width: 760px) { .side-back .atk-coach { width: calc(100% - 1.5rem); } }
+/* 凡例（表面と同じ色）。調べてから出す */
+.atk-legend { max-width: 22rem; margin: 0; padding: 0.35rem 0.7rem; list-style: none; background: rgba(255, 255, 255, 0.92); border-radius: 8px; box-shadow: var(--shadow-soft); }
+.atk-header-note { margin-left: auto; margin-right: 1rem; font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); cursor: default; user-select: none; }
+.atk-role { margin: 0 0 0.5rem; padding: 0.2rem 0.6rem; font-size: 0.8rem; }
+
+/* 選んだ線：太い光・「選択中」・ほかの線はうすく */
+.atk-halo { fill: none; stroke: transparent; stroke-width: 34; stroke-linecap: round; pointer-events: none; }
+.side-back .edge.is-sel .atk-halo { stroke: #F3C63F; opacity: 0.6; }
+.side-back .edge.is-sel .edge-line { stroke-width: 10 !important; filter: none; }
+.side-back .edge.is-dim { opacity: 0.38; }
+.atk-wire-no.is-sel { padding: 0.15rem 0.7rem; color: var(--ink); background: #F3C63F; border-radius: 6px; }
+.node-lying.is-sel { outline: 5px solid #F3C63F; outline-offset: 3px; }
+.atk-inv-item.is-sel { outline: 4px solid #F3C63F; outline-offset: 1px; }
+
+/* コマンド：できない手はグレー。新しい手は NEW と説明 */
+.atk-cmd { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.5rem; margin-bottom: 0.35rem; }
+.atk-cmd.is-off { color: var(--ink-soft); background: transparent; border-style: dashed; border-color: var(--line); cursor: not-allowed; }
+.atk-cmd.is-off:hover { background: transparent; }
+.atk-new { padding: 0 0.4rem; font-size: 0.7rem; font-weight: 900; color: #fff; background: var(--mallory); border-radius: 3px; }
+.atk-cmd-desc, .atk-cmd-why { flex-basis: 100%; font-size: 0.78rem; font-weight: 600; line-height: 1.5; color: var(--ink-soft); }
+/* 「何と取り替える？」：右の持ち物から選ぶ */
+.atk-inv-item.is-candidate { outline: 4px solid #F3C63F; outline-offset: 1px; animation: tutorial-pulse 1.3s ease-in-out infinite; cursor: pointer; }
+.atk-inv-item.is-off { opacity: 0.4; cursor: not-allowed; }
+.atk-advance:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(1); }
+
+/* 霧（成功すると晴れて、Alice と Bob が見える） */
+.atk-fog { position: absolute; top: 0; bottom: 0; z-index: 3; pointer-events: none; background: rgba(214, 214, 229, 0.94); backdrop-filter: blur(3px); }
+.atk-fog.is-clear { opacity: 0; }
+.is-fresh .atk-fog.is-clear { animation: atk-fog-out 1.4s ease 0.3s both; }
+@keyframes atk-fog-out { from { opacity: 1; } to { opacity: 0; } }
+.atk-person { cursor: default; transform: none; }
+.atk-person .port { cursor: default; }
+
+/* 成功の表示：小さめ。内容が見えるように */
+.atk-banner { position: absolute; left: 50%; top: 2.6rem; z-index: 21; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.7rem; max-width: min(36rem, calc(100% - 46rem)); min-width: 14rem; padding: 0.5rem 1rem; color: #fff; background: var(--band, #3B3F66); border-radius: 10px; box-shadow: var(--shadow-lift); transform: translateX(-50%); }
+.atk-banner-h { font-size: 1.05rem; letter-spacing: 0.06em; }
+.atk-banner-line { font-size: 0.88rem; font-weight: 700; line-height: 1.55; word-break: break-all; }
+.atk-banner-line b { margin-right: 0.2rem; color: #F3C63F; }
+.is-fresh .atk-banner { animation: atk-pop 0.5s cubic-bezier(.2,1.4,.4,1) both; }
+.atk-bubble-box { position: absolute; right: 4.6rem; bottom: 1rem; z-index: 21; width: min(26rem, calc(100% - 30rem)); display: flex; flex-direction: column; gap: 0.5rem; }
+.atk-reveal-t { align-self: flex-end; padding: 0.2rem 0.6rem; font-size: 0.8rem; color: #fff; background: var(--ink); border-radius: 4px; }
+.atk-bubble { margin: 0; padding: 0.55rem 0.85rem; font-size: 0.92rem; font-weight: 700; line-height: 1.55; color: var(--ink); background: #fff; border-left: 6px solid #347C79; border-radius: 10px; box-shadow: var(--shadow-soft); }
+.atk-bubble.is-no { border-left-color: var(--mallory); }
+.is-fresh .atk-bubble, .is-fresh .atk-reveal-t { animation: atk-fade-in 0.5s ease 1.2s both; }
+.is-fresh .atk-result { animation: atk-fade-in 0.4s ease 0.9s both; }
+.editor.has-result .atk-result { max-height: none; }
+.atk-result .atk-after { margin: 0.75rem 0 0; font-weight: 700; }
+.atk-result .atk-principle, .atk-after-stop .atk-principle { margin: 0.75rem 0 0; font-weight: 800; }
+.atk-result .rating-note { display: flex; flex-direction: column; gap: 0.1rem; }
+.atk-next-hint { margin: 0.75rem 0 0; font-weight: 700; color: var(--ink-soft); }
+.atk-ch-open { margin-top: 0.5rem; }
+.atk-after-stop { max-width: 40rem; max-height: calc(100vh - 3rem); overflow: auto; }
+@keyframes atk-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes atk-pop { from { opacity: 0; transform: translateX(-50%) scale(0.8); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .is-fresh .atk-banner, .is-fresh .atk-bubble, .is-fresh .atk-result, .is-fresh .atk-fog.is-clear, .is-fresh .atk-reveal-t { animation: none; } }
+.atk-person { min-width: 0; max-width: 208px; }
+.atk-person.node-bob { width: 208px; }
+.atk-res-extra { display: none; }
+@media (max-width: 1100px) {
+  .atk-banner, .atk-bubble-box { display: none; }
+  .atk-res-extra { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.6rem; }
+  .atk-res-extra .atk-banner-line { margin: 0; padding: 0.5rem 0.8rem; color: #fff; background: var(--band); border-radius: 8px; }
+  .atk-res-extra .atk-bubble { animation: none; }
+}

@@ -1,0 +1,6 @@
+/* fade.css  画面の移り変わり（フェードアウト → フェードイン）。表面・裏面の、すべてのページで使う */
+.flip-out { position: fixed; inset: 0; z-index: 99999; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+.flip-out.is-on { opacity: 1; pointer-events: auto; }
+html.flip-in::after { content: ""; position: fixed; inset: 0; z-index: 99999; background: var(--flip, #fff); pointer-events: none; animation: flip-in 0.6s 0.05s ease forwards; }
+@keyframes flip-in { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .flip-out, html.flip-in::after { transition: none; animation-duration: 0.01s; } }

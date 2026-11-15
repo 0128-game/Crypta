@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRYPTA 裏面 | あなたが攻撃者なら、何が見える？</title>
+  <meta name="description" content="EveとMalloryになって、通信が流れる線の上から、守りの弱いところを探す。CRYPTAの裏面。">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="css/attacker.css">
+  <link rel="stylesheet" href="css/back.css">
+  <link rel="stylesheet" href="css/smooth.css">
+  <link rel="stylesheet" href="css/fade.css">
+  <script>try{var c=sessionStorage.getItem("crypta:flip");if(c){sessionStorage.removeItem("crypta:flip");var d=document.documentElement;d.classList.add("flip-in");d.style.setProperty("--flip",c);}}catch(e){}</script>
+</head>
+<body class="page-index side-back">
+
+  <a class="skip-link" href="#stage-section">ステージ一覧へ移動</a>
+
+  <header class="site-header">
+    <a class="site-logo" href="attacker.html" aria-label="CRYPTA 裏面 トップへ">CRYPTA</a>
+    <div class="site-header-right">
+      <button type="button" class="button button-secondary button-quiet" id="reset-back">リセット</button>
+      <p class="site-progress" id="progress" aria-live="polite"></p>
+    </div>
+  </header>
+
+  <main>
+    <!-- ヒーロー（表面と同じ構成。色だけ変える） -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-art is-live" id="hero-art" role="button" tabindex="0" aria-label="表面（Alice と Bob）に切り替える"></div>
+      <h1 id="hero-title">あなたが攻撃者なら、<br>何が見える？</h1>
+      <p class="hero-lead">
+        見えるのは、誰でも見られる公開ゾーンだけ。通信が流れる線をクリックして、盗み見る Eve、書き換える Mallory になりきろう。
+        Eve は、情報を手に入れられれば成功。Mallory は、書き換えて流せれば成功。向こうでどうなったかは、あとで、わかる。
+      </p>
+      <p class="hero-attacker-entry"><a class="button button-primary" href="index.html">表面（Alice と Bob）に切り替える</a></p>
+    </section>
+
+    <section class="continue" id="continue-section" aria-label="つづきから">
+      <ul class="stage-list" id="continue-list"></ul>
+    </section>
+
+    <section class="stages" id="stage-section" aria-labelledby="stages-title">
+      <h2 id="stages-title">ステージ</h2>
+      <ul class="stage-list" id="stage-list"></ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p id="footer-text">これは教材用のシミュレーションです。画面の中だけで動き、実在の通信・サービス・他人の端末には、何もしません。</p>
+  </footer>
+
+  <script type="module" src="js/attacker-home.js"></script>
+</body>
+</html>
