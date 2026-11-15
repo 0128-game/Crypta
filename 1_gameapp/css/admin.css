@@ -1,0 +1,83 @@
+/* 管理者モード（トップページの、隠しの入り口と、ツールの一覧） */
+.admin-chip {
+  margin-left: 0.8rem;
+  padding: 0.1rem 0.7rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--surface, #fffcf5);
+  background: var(--ink, #263650);
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.admin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  overflow-y: auto;
+  background: rgba(38, 54, 80, 0.55);
+}
+.admin-card {
+  width: min(640px, 100%);
+  padding: 1.4rem 1.6rem 1.6rem;
+  color: var(--ink, #263650);
+  background: var(--surface, #fffcf5);
+  border-radius: 4px;
+}
+.admin-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.admin-head h2 { margin: 0; font-size: 1.3rem; }
+.admin-close, .admin-off {
+  padding: 0.3rem 0.9rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink, #263650);
+  background: var(--paper-deep, #e8e2d3);
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.admin-close:hover, .admin-off:hover { color: var(--surface, #fffcf5); background: var(--ink, #263650); }
+.admin-state { margin: 0.4rem 0 1rem; font-size: 0.85rem; font-weight: 800; color: var(--ok, #3f8a5c); }
+.admin-group { margin: 0 0 1.1rem; }
+.admin-group h3 { margin: 0 0 0.4rem; padding-bottom: 0.2rem; font-size: 0.95rem; border-bottom: 2px solid var(--ink, #263650); }
+.admin-tool, .admin-action {
+  display: block;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 0.7rem 1rem;
+  font: inherit;
+  text-align: left;
+  color: var(--ink, #263650);
+  text-decoration: none;
+  background: var(--paper-deep, #e8e2d3);
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.admin-tool:hover, .admin-action:hover { background: var(--sun, #f3c63f); }
+.admin-action.is-on { background: var(--sun, #f3c63f); }
+.admin-tool strong, .admin-action strong { display: block; font-size: 1rem; }
+.admin-tool span, .admin-action span { display: block; margin-top: 0.1rem; font-size: 0.85rem; color: var(--ink-soft, #657085); }
+.admin-foot { margin-top: 0.8rem; text-align: right; }
+.admin-locked { max-width: 520px; margin: 18vh auto; padding: 0 1.2rem; text-align: center; }
+.admin-locked h1 { margin: 0 0 0.6rem; font-size: 1.5rem; }
+.admin-locked p { margin: 0 0 1.2rem; color: var(--ink-soft, #657085); }
+/* 試し用の設定を、使っているあいだの、目印（管理者だけに出る） */
+.admin-override-chip {
+  position: fixed;
+  left: 0.8rem;
+  bottom: 0.8rem;
+  z-index: 8000;
+  padding: 0.3rem 0.8rem;
+  font: 800 0.78rem/1.4 var(--font, sans-serif);
+  color: var(--ink, #263650);
+  background: var(--sun, #f3c63f);
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}

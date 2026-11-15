@@ -1,0 +1,66 @@
+/* ==========================================================
+   back.css  裏面（Eve・Mallory）の色と、ステージ画面（表面と同じ構成・別の色）
+   ========================================================== */
+body.side-back {
+  --bg: #E6E6EF;
+  --surface: #FAF9FD;
+  --paper-deep: #D6D6E5;
+  --ink: #232842;
+  --ink-soft: #5E6482;
+  --sun: #CFCBE8;           /* 強調（表面の黄色の代わり） */
+  --band: #3B3F66;          /* ヒーローの帯 */
+  background: var(--bg);
+}
+.side-back .hero::before { background-color: var(--band); background-image: radial-gradient(rgba(255, 255, 255, 0.10) 1.3px, transparent 1.7px); background-size: 15px 15px; background-repeat: repeat; background-position: 0 0; }
+.side-back .hero::after { display: none; }
+.side-back .hero h1, .side-back .hero-lead { color: #fff; }
+.side-back .hero .button-primary { color: var(--ink); background: #fff; }
+.side-back .hero .button-primary:hover { color: #fff; background: var(--mallory); }
+.side-back .art-line { border-top-color: #fff; }
+.side-back .art-packet { background: #fff; }
+.side-back .site-logo:not(.has-image) { background: var(--band); color: #fff; border-color: var(--ink); }
+.side-chip { padding: 0.15rem 0.6rem; font: 800 0.85rem var(--font-mono); letter-spacing: 0.1em; color: #fff; background: var(--mallory); }
+.side-back .stage-card.is-continue { background: var(--paper-deep); }
+.side-back .stage-card.is-continue:hover, .side-back .stage-card:hover { background: var(--sun); }
+.side-back .stage-card.is-continue .stage-now { color: #fff; background: var(--band); }
+
+/* ---------- ステージ画面（3列：情報 / 公開ゾーンだけの盤面 / 記録） ---------- */
+.atk-main-wide { max-width: 1320px; }
+.atk-play { display: grid; grid-template-columns: 270px minmax(0, 1fr) 260px; gap: 1rem; align-items: start; }
+@media (max-width: 1000px) { .atk-play { grid-template-columns: 1fr; } }
+.atk-info, .atk-play-main, .side-back .atk-guide { min-width: 0; }
+.atk-info { padding: 1rem; background: var(--surface); }
+.atk-info h2 { margin: 0.2rem 0; font-size: 1.3rem; }
+.atk-role { margin: 0.4rem 0; padding: 0.4rem 0.6rem; font-weight: 800; font-size: 0.9rem; color: #fff; background: var(--band); }
+.atk-questions { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.6rem 0; padding: 0.6rem 0.8rem; font-weight: 700; background: var(--sun); }
+.atk-questions span::before { content: "・"; }
+.side-back .atk-guide { position: static; background: var(--sun); }
+
+/* 盤面：公開ゾーンだけ。線には、色も、文字もない */
+.atk-board { padding: 0.8rem 1rem 1rem; background: var(--surface); border: 2px dashed var(--ink); min-height: 18rem; }
+.atk-board-t { font-weight: 800; font-size: 0.85rem; color: var(--ink-soft); }
+.atk-edges { display: flex; justify-content: space-between; margin: 0.3rem 0 0.6rem; font-size: 0.75rem; font-weight: 700; color: var(--ink-soft); }
+.atk-lines { display: flex; flex-direction: column; gap: 0.6rem; }
+.atk-wire { position: relative; display: block; width: 100%; height: 3.2rem; padding: 0; background: transparent; border: 0; cursor: pointer; }
+.atk-wire:hover { background: rgba(207, 203, 232, 0.6); }
+.atk-wire-line { position: absolute; left: 0; right: 0; top: 50%; border-top: 3px dotted var(--ink-soft); }
+.atk-wire-dot { position: absolute; top: calc(50% - 8px); left: 5%; width: 16px; height: 16px; background: var(--ink-soft); animation: atk-flow 3.4s ease-in-out infinite; }
+@keyframes atk-flow { 0% { left: 3%; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { left: 94%; opacity: 0; } }
+.atk-wire-no { position: absolute; left: 0.4rem; top: 0; font-size: 0.7rem; font-weight: 700; color: var(--ink-soft); }
+.atk-wire.is-done .atk-wire-dot, .atk-wire.is-grabbed .atk-wire-dot { animation: none; opacity: 0.25; left: 94%; }
+.atk-wire.is-done .atk-wire-line { opacity: 0.35; }
+.atk-wire.is-grabbed .atk-wire-line { border-top-style: dashed; border-top-color: var(--mallory); opacity: 0.5; }
+@media (prefers-reduced-motion: reduce) { .atk-wire-dot { animation: none; left: 45%; } }
+.atk-objs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.9rem; align-items: center; }
+.atk-obj { padding: 0.4rem 0.7rem; font: inherit; font-size: 0.85rem; font-weight: 700; color: var(--ink); background: var(--paper-deep); border: 2px dotted var(--ink); border-radius: 4px; cursor: pointer; }
+.atk-obj:hover { background: var(--sun); }
+.atk-hotbar { align-items: center; }
+.atk-advance { margin-left: 0; }
+.atk-debrief { margin: 0.6rem 0; padding: 0.6rem 0.8rem; background: var(--surface); border-left: 4px solid var(--mallory); }
+.atk-debrief p { margin: 0.25rem 0; font-size: 0.9rem; }
+
+/* コマンドのメニュー */
+.atk-menu { position: fixed; z-index: 9600; min-width: 13rem; max-width: 20rem; padding: 4px; background: var(--surface); border: 2px solid var(--ink); border-radius: 4px; }
+.atk-menu-t { padding: 0.3rem 0.7rem; font-size: 0.75rem; font-weight: 800; color: var(--ink-soft); }
+.atk-menu-i { display: block; width: 100%; padding: 0.5rem 0.8rem; font: inherit; font-weight: 700; text-align: left; color: var(--ink); background: transparent; border: 0; border-radius: 3px; cursor: pointer; }
+.atk-menu-i:hover { background: var(--sun); }
